@@ -1,0 +1,30 @@
+{% extends "base/blank.html" %}
+
+{% load static %}
+
+{% block style %}
+	<link type="text/x-scss" rel="stylesheet" href="{% static "mwlearnapp/style/experiment.scss" %}" />
+{% endblock style %}
+
+{% block body %}
+	{% if 'dbg' in request.GET %}
+		<input type="text" id="commandline" value="var blah=new jse.Rectangle({width: 200, height: 200, X: -200});">
+	{% endif %}
+	<div id="experiment"></div>
+{% endblock body %}
+
+{% block script %}
+	{% comment %}<script type="text/javascript" src="{% static "mwlearnapp/external/raphael/raphael-min.js" %}"></script>{% endcomment %}
+	<script type="text/javascript" src="{% static "mwlearnapp/external/raphael/raphael.js" %}"></script>
+	<script type="text/coffeescript" charset="utf-8" src="{% static "mwlearnapp/script/mwlearn.coffee" %}"></script>
+
+	<script type="text/javascript">
+		$('#commandline').keyup(function (e){
+			if(e.keyCode==13){
+				eval($('#commandline').val());
+			}
+		});
+	</script>
+
+
+{% endblock script %}

@@ -1,0 +1,28 @@
+@import "common/vars";
+
+$sep-border: $welcome-sep-width solid $welcome-sep-color;
+
+//login form
+#form-login {
+	border-bottom: $sep-border;
+}
+
+//padding between the login/signup forms
+#form-login {
+	padding-bottom: $login-signup-padding;
+
+	.field-remember_me {
+		a {
+			float: right;
+			overflow: hidden;
+
+		}
+	}
+}
+#form-signup {
+	padding-top: $login-signup-padding;
+}
+
+#tour {
+	text-align: center;
+}

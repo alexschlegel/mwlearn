@@ -1,0 +1,154 @@
+@import "../common/vars";
+
+%menu-marginal {
+	background: $marginal-background-color;
+	border-radius: $marginal-border-radius;
+
+	> ul {
+		/*clear the pure height so the ul is centered vertically
+		something about the search box is actually doing this*/
+		height: auto;
+
+		li {
+			text-shadow: $shadow-short;
+		}
+	}
+}
+
+.pure-menu.pure-menu-main {
+	@extend %menu-marginal;
+
+	height: $header-height;
+
+	.pure-menu-heading {
+		padding: 0;
+		margin: $logo-padding;
+
+		//so it matches with the nav items
+		margin-right: $nav-item-padding-outer;
+
+		//make sure we don't extend beyond the set nav height
+		line-height: 0;
+
+		background: url('/static/main/images/logo-medium.png') bottom;
+
+		div {
+			width: $logo-width;
+			height: $logo-height;
+		}
+	}
+	.pure-menu-heading:hover {
+		background-position: 0 0;
+	}
+
+	> ul {
+		li {
+			a {
+				//make the links like buttons
+				border-radius: $nav-item-border-radius;
+
+				//counteract pure padding
+				padding: 0 $nav-item-padding-inner 0 $nav-item-padding-inner;
+
+				color: $marginal-font-color;
+			}
+			a:hover {
+				background: $color-active;
+				box-shadow: $shadow-short;
+			}
+			//link for a currently selected page
+			a.pure-menu-selected {
+				background: $color-selected;
+				box-shadow: $shadow-short;
+			}
+			a.pure-menu-selected:hover {
+				background: $color-active;
+			}
+		}
+	}
+		ul.main {
+			li {
+				//space before each link
+				padding-left: $nav-item-padding-outer;
+			}
+			a {
+				font-weight: bold;
+				text-transform: uppercase;
+			}
+		}
+		ul.search {
+			padding: 0;
+
+			li {
+				height: $header-height;
+			}
+
+			.field-q {
+				margin: 0;
+
+				input {
+					box-shadow: $shadow-tall inset;
+
+					width: 17em;
+
+					margin-top: $logo-padding;
+					height: $logo-height;
+
+					padding-top: 0;
+					padding-bottom: 0;
+				}
+			}
+		}
+		ul.aux {
+			float: right;
+
+			height: 100%;
+
+			margin-right: 1em;
+
+			font-size: $font-smaller;
+
+			display: table;
+
+			li {
+				height: 100%;
+
+				display: table-cell;
+				vertical-align: middle;
+			}
+		}
+}
+
+.pure-menu.pure-menu-other {
+	@extend %menu-marginal;
+
+	height: $footer-height;
+
+	text-align: center;
+	color: $marginal-font-color;
+	text-transform: uppercase;
+	font-size: $font-tinier;
+	font-weight: bold;
+
+	ul {
+		height: 100%;
+	}
+	li {
+		line-height: $footer-height;
+
+		a {
+			padding: 0;
+			padding-right: 1em;
+
+			color: $marginal-font-color;
+		}
+		a:hover {
+			//counteract pure
+			color: $color-active;
+			background: none;
+		}
+	}
+		li.copyright {
+			opacity: 0.5;
+		}
+}
