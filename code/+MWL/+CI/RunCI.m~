@@ -1,0 +1,13 @@
+function RunCI(mwlt)
+% MWLearnTest.RunCI
+%
+% Description: do a constructive imagery run
+%
+% Syntax: MWL.CI.RunCI(mwlt)
+
+mwlt.Experiment.Show.Instructions('this is just a test.','next','exit');
+
+    %-----------------------------------------------------------------%
+    
+
+end
