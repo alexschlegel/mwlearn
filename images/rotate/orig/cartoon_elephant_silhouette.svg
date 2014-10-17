@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns:ns1="http://sozi.baierouge.fr"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    id="svg2"
+    sodipodi:docname="Novo documento 1"
+    viewBox="0 0 570.59 434.04"
+    version="1.1"
+    inkscape:version="0.47 r22583"
+  >
+  <sodipodi:namedview
+      id="base"
+      bordercolor="#666666"
+      inkscape:pageshadow="2"
+      inkscape:window-y="-8"
+      pagecolor="#ffffff"
+      inkscape:window-height="838"
+      inkscape:window-maximized="1"
+      inkscape:zoom="0.35"
+      inkscape:window-x="-8"
+      showgrid="false"
+      borderopacity="1.0"
+      inkscape:current-layer="layer1"
+      inkscape:cx="243.09921"
+      inkscape:cy="173.79706"
+      inkscape:window-width="1600"
+      inkscape:pageopacity="0.0"
+      inkscape:document-units="px"
+  />
+  <g
+      id="layer1"
+      inkscape:label="Camada 1"
+      inkscape:groupmode="layer"
+      transform="translate(-100.16 -347.34)"
+    >
+    <path
+        id="path2830"
+        sodipodi:nodetypes="cssccccccccsszssssszss"
+        style="fill:#000000"
+        d="m179.64 748.43c1.8069-37.935 23.256-80.04 5.8077-114.84-15.911-31.732-35.898-77.909-49.022-96.232-5.4286-7.579-33.639 48.549-36.237 35.018-2.293-131.69 136.2-192.54 249.29-187.55 28.452 5.2887 51.597 3.3262 72.91-16.582 44.344-31.867 125.49-24.114 170.41 1.7851 107.06 84.807 98.768 210.41 6.1097 302.74-19.008 16.499 0.86178 41.768 20.737 25.846 29.609-16.498 50.822 40.145 16.978 42.319-29.498-1.5072-69.016 1.5848-80.496-33.41-20.292-27.197 27.958-85.964 26.708-107.04-1.5945-26.909-102.07 38.938-106 66.94-3.7259 26.56 42.116 51.511 34.029 89.606-8.0873 38.095-44.996 19.151-65.527 22.666-27.308 4.6746-50.44-10.924-36.142-40.326 10.429-21.446 8.5594-57.299-11.044-70.248-20.079-13.263-46.769 15.924-76.161 7.4327-29.041-8.3901-60.674 13.369-39.151 27.312 16.623 10.768 37.986 68.148 4.9112 72.746-33.075 4.5983-72.691 8.4579-101.18-12.933-4.5634-3.4269-7.2017-9.698-6.9373-15.249z"
+    />
+  </g
+  >
+  <metadata
+    >
+    <rdf:RDF
+      >
+      <cc:Work
+        >
+        <dc:format
+          >image/svg+xml</dc:format
+        >
+        <dc:type
+            rdf:resource="http://purl.org/dc/dcmitype/StillImage"
+        />
+        <cc:license
+            rdf:resource="http://creativecommons.org/licenses/publicdomain/"
+        />
+        <dc:publisher
+          >
+          <cc:Agent
+              rdf:about="http://openclipart.org/"
+            >
+            <dc:title
+              >Openclipart</dc:title
+            >
+          </cc:Agent
+          >
+        </dc:publisher
+        >
+        <dc:title
+          >Cartoon elephant silhouette</dc:title
+        >
+        <dc:date
+          >2010-05-25T07:04:13</dc:date
+        >
+        <dc:description
+          >Elephant silhouette. Silhueta de elefante.</dc:description
+        >
+        <dc:source
+          >https://openclipart.org/detail/62719/cartoon-elephant-silhouette-by-laobc</dc:source
+        >
+        <dc:creator
+          >
+          <cc:Agent
+            >
+            <dc:title
+              >laobc</dc:title
+            >
+          </cc:Agent
+          >
+        </dc:creator
+        >
+        <dc:subject
+          >
+          <rdf:Bag
+            >
+            <rdf:li
+              >black and white</rdf:li
+            >
+            <rdf:li
+              >cartoon</rdf:li
+            >
+            <rdf:li
+              >elephant</rdf:li
+            >
+            <rdf:li
+              >silhouette</rdf:li
+            >
+          </rdf:Bag
+          >
+        </dc:subject
+        >
+      </cc:Work
+      >
+      <cc:License
+          rdf:about="http://creativecommons.org/licenses/publicdomain/"
+        >
+        <cc:permits
+            rdf:resource="http://creativecommons.org/ns#Reproduction"
+        />
+        <cc:permits
+            rdf:resource="http://creativecommons.org/ns#Distribution"
+        />
+        <cc:permits
+            rdf:resource="http://creativecommons.org/ns#DerivativeWorks"
+        />
+      </cc:License
+      >
+    </rdf:RDF
+    >
+  </metadata
+  >
+</svg
+>

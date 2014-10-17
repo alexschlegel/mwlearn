@@ -10,13 +10,17 @@
 	{% if 'dbg' in request.GET %}
 		<input type="text" id="commandline" value="var blah=new jse.Rectangle({width: 200, height: 200, X: -200});">
 	{% endif %}
-	<div id="experiment"></div>
+	<div class="pure-g base">
+		<div class="pure-u-1-6" id="status"></div>
+		<div class="pure-u-5-6" id="experiment"></div>
+	</div>
 {% endblock body %}
 
 {% block script %}
 	{% comment %}<script type="text/javascript" src="{% static "mwlearnapp/external/raphael/raphael-min.js" %}"></script>{% endcomment %}
 	<script type="text/javascript" src="{% static "mwlearnapp/external/raphael/raphael.js" %}"></script>
 	<script type="text/coffeescript" charset="utf-8" src="{% static "mwlearnapp/script/mwlearn.coffee" %}"></script>
+	<script type="text/coffeescript" charset="utf-8" src="{% static "mwlearnapp/script/mwlearn_tests.coffee" %}"></script>
 
 	<script type="text/javascript">
 		$('#commandline').keyup(function (e){
@@ -25,6 +29,4 @@
 			}
 		});
 	</script>
-
-
 {% endblock script %}
