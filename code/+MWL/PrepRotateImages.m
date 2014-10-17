@@ -37,6 +37,7 @@ cPathPNG	= cellfun(@(f) PathUnsplit(strDirPNG,PathGetFilePre(f),'png'),cPathSVG,
 	
 	CreateDirPath(strDirJS);
 	
-	strPathRappar	= PathUnsplit(DirAppend(strDirCode,'rappar'),'rappar','js');
-	[ec,cOut]		= CallProcess('node',{strPathRappar,cPathSVG});
-	
+	raph	= cellfunprogress(@svg2raphael,cPathSVG,'uni',false);
+
+
+

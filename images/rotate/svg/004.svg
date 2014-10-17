@@ -1,202 +1,36 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generator: Adobe Illustrator 10.0, SVG Export Plug-In . SVG Version: 3.0.0 Build 77)  -->
-<svg
-    xmlns:cc="http://web.resource.org/cc/"
-    xmlns:ns="http://ns.adobe.com/Variables/1.0/"
-    xmlns:dc="http://purl.org/dc/elements/1.1/"
-    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-    xmlns:ns0="http://ns.adobe.com/SaveForWeb/1.0/"
-    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:i="http://ns.adobe.com/AdobeIllustrator/10.0/"
-    xmlns:svg="http://www.w3.org/2000/svg"
-    xmlns:ns1="http://sozi.baierouge.fr"
-    id="svg2"
-    xml:space="preserve"
-    sodipodi:docbase="C:\Documents and Settings\Owner\My Documents\Downloads"
-    viewBox="0 0 408.751 277.453"
-    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-    sodipodi:docname="grey_hound.svg"
-    i:rulerOrigin="0 0"
-    i:viewOrigin="102.4375 619.437"
-    overflow="visible"
-    inkscape:version="0.45.1"
-    i:pageBounds="0 792 612 0"
-    sodipodi:version="0.32"
-    enable-background="new 0 0 408.751 277.453"
-  ><sodipodi:namedview
-      id="base"
-      bordercolor="#666666"
-      inkscape:pageshadow="2"
-      guidetolerance="10.0"
-      pagecolor="#ffffff"
-      gridtolerance="10.0"
-      inkscape:zoom="1.9216174"
-      objecttolerance="10.0"
-      borderopacity="1.0"
-      inkscape:current-layer="svg2"
-      inkscape:cx="208.56813"
-      inkscape:cy="194.46553"
-      inkscape:window-y="-4"
-      inkscape:window-x="-4"
-      inkscape:window-height="708"
-      inkscape:pageopacity="0.0"
-      inkscape:window-width="1024"
-  />
-	<switch
-      id="switch6"
-      style="fill:#000000"
-    >
-		<foreignObject
-        id="foreignObject8"
-        requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
-        height="1"
-        width="1"
-        y="0"
-        x="0"
-      >
-			<i:pgfRef
-          xlink:href="#adobe_illustrator_pgf"
-        >
-			</i:pgfRef
-      >
-		</foreignObject
-    >
-		<g
-        id="g10"
-        i:extraneous="self"
-        style="fill:#000000"
-      >
-			<g
-          id="Layer_1"
-          i:rgbTrio="#4F008000FFFF"
-          style="fill:#000000"
-          i:layer="yes"
-          i:dimmedPercent="50"
-        >
-				<g
-            id="g13"
-            stroke-linejoin="round"
-            style="fill:#000000"
-            fill-rule="evenodd"
-            stroke="#000000"
-            stroke-linecap="round"
-            stroke-miterlimit="2.4142"
-            clip-rule="evenodd"
-          >
-						<path
-              id="path15"
-              style="fill:#000000"
-              d="m83.089 155.91c-0.274 5.52-1.093 7.65-2.458 9.92-5.189 10.63-7.92 15.03-20.208 22.83-6.962 4.68-26.896 5.66-34.815 2.12-6.827-1.56-18.295-7.8-23.347-14.17-1.366-1.56-3.277 0.28-1.093 2.83 4.369 6.52 11.333 12.05 14.746 13.47 19.387 9.92 39.048 6.95 58.436-3.69 0.683-0.85 1.911-1.55 3.003-2.69 0.136-2.41 16.993-13.35 18.359-14.91 0.273-2.27-11.531-13.44-12.623-15.71z"
-              sodipodi:nodetypes="ccccccccccc"
-              i:knockout="Off"
-              stroke-width=".4501"
-              fill="#BE7D47"
-          />
-						<path
-              id="path17"
-              style="fill:#000000"
-              d="m75.579 213.04c1.911 10.06 2.185 23.11 3.14 30.48 0.684 5.25 0.955 8.51 6.417 8.36 2.185-0.13 3.96-0.28 5.597-0.42 1.775 0 5.462 0.14 6.691-0.85 1.365 0.57 2.048 0.57 2.726-0.14 0.96 0.43 1.78 0.57 2.6 0.28 0.13-2.83-0.55-2.55-1.09-4.82-3.418-5.67-8.742-2.55-11.2-4.67-2.457-5.82-3.003-16.88-2.867-28.22 0-3.26-0.184-9.74 0.908-12.86-3.413 2.7-9.099 9.6-12.922 12.86z"
-              sodipodi:nodetypes="cccccccccccc"
-              i:knockout="Off"
-              stroke-width=".3939"
-          />
-						<path
-              id="path19"
-              style="fill:#000000"
-              d="m140.16 120.76c-5.6 4.25-6.96 24.37-8.47 30.9-1.09 5.38-4.78 14.6-9.28 17.58 1.5-5.54 1.91-10.08 2.32-16.73 3.55-8.51 6.82-21.55 8.46-26.65 2.05-1.84 3.83-3.4 6.97-5.1z"
-              sodipodi:nodetypes="cccccc"
-              i:knockout="Off"
-              stroke-width=".3939"
-          />
-						<path
-              id="path21"
-              style="fill:#000000"
-              d="m288.57 156.49c0 15.59-7.78 33.59-5.6 50.74 1.78 15.59-1.09 38.42 8.06 49.76 2.59 0 4.5 0.57 6.28 1.56 3 0.57 4.64 2.41 5.05 4.82-2.18-0.43-2.46 1.13-4.37 1.71-2.87 1.13-4.09-0.29-6.69-0.15-3.14-1.41-5.83-5.01-6.65-9.4-1.09-1.85-2.14-5.25-2.68-7.38-2.87-8.51-3.1-21.22-2.83-30.86-0.41-12.33 1.87-31.61 3.51-43.09 0.68-4.11 1.59-8.61 2.41-12.86l0.09-2.92c0.82-0.15 2.46-1.36 3.42-1.93z"
-              sodipodi:nodetypes="cccccccccccccc"
-              i:knockout="Off"
-              stroke-width=".3939"
-          />
-						<path
-              id="path23"
-              style="fill:#000000"
-              d="m328.85 16.542c-9.29 8.081-38.23 29.347-51.48 45.366-4.5 3.972-6.55 3.972-13.1 2.411-11.47-2.834-28.81-1.983-41.65 1.418-22.39 2.836-46.69 1.277-70.99 2.836-46.29 1.132-59.122 21.409-67.859 34.167-16.521 22.97 1.775 46.78 1.775 69.61-1.775 2.12-8.976 11.89-8.976 14.73-9.693 7.79-20.106 19.44-27.479 28.65-4.095 7.52 2.048 17.16 3.003 49.06 0.547 2.98 1.093 5.53 3.55 5.81 4.506 0.71 12.426 0.28 16.249-2.27 1.773-0.28 1.912 0.43 3.96 0.15 0.136-1.28 0-3.12-1.094-3.98-0.819-3.26-2.457-4.53-5.325-4.96-4.641-1.27-4.778 0.57-6.689-1.84-2.594-10.78-3.685-29.77 2.869-36.86 9.42-6.95 18.431-14.46 26.213-22.26 7.919-3.97 17.753-12.9 23.343-19.14 7.92-6.6 10.03-15.6 10.85-26.65 3.96-10.21 5.13-16.73 7.86-26.51 12.7-13.05 20.89-6.95 45.6-2.98 14.75 4.53 27.99 20.27 37.41 24.1 14.07 5.67 27.85 8.93 42.73 6.38 0 1.42-1.63 4.96-2.18 5.81 0 4.11 1.64 6.95 2.73 10.49 5.19 14.32 3.41 34.88 6.28 50.62 1.23 7.08-2.87 17.01-0.55 23.39 2.87 7.94 8.6 15.74 11.47 23.53-1.36 6.24 4.51 1.84 7.92 8.51 2.73 1.28 7.78 1.84 12.7-0.14 3.55-0.71 4.23-2.7 6.14-1.98 0.28-3.55-4.5-5.68-7.91-6.53-5.19-3.54-8.06-1.98-10.93-11.2 0-1.42-1.64-3.68-1.64-4.96-8.05-24.24-2.59-65.64 1.92-89.89v-2.83c10.1-2.69 23.61-35.3 31.67-56.57 3.41-10.631 11.33-19.14 16.52-29.913 1.91-1.277 2.87-2.269 2.87-5.669 6.01-5.246 10.37-20.985 12.97-19.283 5.6 2.695 14.74-0.568 17.89 0.566 1.64 2.269 3.27 3.261 8.87 2.269 3.82-0.708 12.15 1.417 15.29 0.992 3.14-0.283 8.47-2.552 11.61-6.095 2.86-0.992 4.91-1.134 5.32-6.095-2.18-1.561-3.82-2.552-9.15-3.972-6.55-3.26-17.75-5.952-22.39-13.893-2.86-8.647-13.1-8.647-17.06-13.611-2.05-2.269-2.19-4.82-2.6-6.806-4.37-0.991-8.33 0-10.65 4.255-2.86-1.278-5.18-4.255-8.6-2.126-1.36 1.984-3 3.403-7.1 4.535-1.37 2.98-1.77 5.389-2.18 9.358z"
-              sodipodi:nodetypes="cccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-              i:knockout="Off"
-              stroke-width=".3376"
-              fill="#D89C5F"
-          />
-				</g
-        >
-			</g
-      >
-		</g
-    >
-	</switch
-  >
-<metadata
-    ><rdf:RDF
-      ><cc:Work
-        ><dc:format
-          >image/svg+xml</dc:format
-        ><dc:type
-            rdf:resource="http://purl.org/dc/dcmitype/StillImage"
-        /><cc:license
-            rdf:resource="http://creativecommons.org/licenses/publicdomain/"
-        /><dc:publisher
-          ><cc:Agent
-              rdf:about="http://openclipart.org/"
-            ><dc:title
-              >Openclipart</dc:title
-            ></cc:Agent
-          ></dc:publisher
-        ><dc:title
-          >greyhound silhouette</dc:title
-        ><dc:date
-          >2011-05-08T18:11:47</dc:date
-        ><dc:description
-          >A silhouette version of ArtFavor's greyhound.</dc:description
-        ><dc:source
-          >https://openclipart.org/detail/137317/greyhound-silhouette-by-annaleeblysse</dc:source
-        ><dc:creator
-          ><cc:Agent
-            ><dc:title
-              >annaleeblysse</dc:title
-            ></cc:Agent
-          ></dc:creator
-        ><dc:subject
-          ><rdf:Bag
-            ><rdf:li
-              >animal</rdf:li
-            ><rdf:li
-              >breed</rdf:li
-            ><rdf:li
-              >dog</rdf:li
-            ><rdf:li
-              >dogs</rdf:li
-            ><rdf:li
-              >hound</rdf:li
-            ><rdf:li
-              >man's best friend</rdf:li
-            ><rdf:li
-              >shape</rdf:li
-            ><rdf:li
-              >silhouette</rdf:li
-            ></rdf:Bag
-          ></dc:subject
-        ></cc:Work
-      ><cc:License
-          rdf:about="http://creativecommons.org/licenses/publicdomain/"
-        ><cc:permits
-            rdf:resource="http://creativecommons.org/ns#Reproduction"
-        /><cc:permits
-            rdf:resource="http://creativecommons.org/ns#Distribution"
-        /><cc:permits
-            rdf:resource="http://creativecommons.org/ns#DerivativeWorks"
-        /></cc:License
-      ></rdf:RDF
-    ></metadata
-  ></svg
->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 14.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 43363)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+	 id="g10" sodipodi:version="0.32" inkscape:version="0.45.1" sodipodi:docname="grey_hound.svg" sodipodi:docbase="C:\Documents and Settings\Owner\My Documents\Downloads" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:cc="http://web.resource.org/cc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:svg="http://www.w3.org/2000/svg" xmlns:ns0="http://ns.adobe.com/SaveForWeb/1.0/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:ns1="http://sozi.baierouge.fr" xmlns:ns="http://ns.adobe.com/Variables/1.0/" inkscape:output_extension="org.inkscape.output.svg.inkscape"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="216px" height="288px"
+	 viewBox="0 0 216 288" enable-background="new 0 0 216 288" xml:space="preserve">
+<sodipodi:namedview  id="base" inkscape:window-width="1024" inkscape:pageopacity="0.0" inkscape:window-height="708" inkscape:window-x="-4" inkscape:window-y="-4" inkscape:current-layer="svg2" inkscape:pageshadow="2" inkscape:cx="208.56813" inkscape:zoom="1.9216174" objecttolerance="10.0" inkscape:cy="194.46553" guidetolerance="10.0" bordercolor="#666666" borderopacity="1.0" pagecolor="#ffffff" gridtolerance="10.0">
+	</sodipodi:namedview>
+<path stroke="#000000" stroke-width="0.3376" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="2.4142" d="
+	M211.074,89.097c-3.461-1.723-9.379-3.146-11.832-7.342c-1.511-4.569-6.922-4.569-9.015-7.192c-1.083-1.199-1.157-2.547-1.374-3.597
+	c-2.309-0.523-4.402,0-5.628,2.249c-1.511-0.675-2.737-2.249-4.544-1.124c-0.719,1.048-1.585,1.798-3.752,2.396
+	c-0.724,1.575-0.935,2.848-1.152,4.945c-4.909,4.27-20.202,15.508-27.204,23.973c-2.378,2.099-3.461,2.099-6.923,1.274
+	c-6.061-1.498-15.224-1.048-22.009,0.75c-11.832,1.499-24.673,0.675-37.514,1.499c-24.461,0.598-31.243,11.313-35.859,18.055
+	c-6.674,9.279-2.599,18.816-0.307,28.184c-0.016-0.027-0.042-0.063-0.054-0.087c-0.145,2.917-0.577,4.042-1.299,5.242
+	c-2.742,5.617-4.185,7.942-10.679,12.064c-3.679,2.473-14.213,2.991-18.397,1.121c-3.607-0.825-9.668-4.122-12.337-7.488
+	c-0.722-0.824-1.732,0.148-0.578,1.496c2.309,3.445,5.989,6.368,7.792,7.118c10.098,5.167,20.337,3.708,30.44-1.72
+	c-4.64,4.036-9.418,9.419-12.909,13.779c-2.164,3.974,1.083,9.068,1.587,25.925c0.289,1.575,0.578,2.922,1.876,3.07
+	c2.381,0.375,6.566,0.148,8.587-1.199c0.937-0.148,1.01,0.227,2.092,0.079c0.072-0.676,0-1.649-0.578-2.103
+	c-0.433-1.723-1.298-2.394-2.814-2.621c-2.452-0.671-2.524,0.301-3.535-0.973c-1.371-5.696-1.947-15.731,1.516-19.478
+	c1.793-1.323,3.557-2.686,5.274-4.079c1.002,5.311,1.148,12.18,1.651,16.064c0.361,2.774,0.505,4.497,3.391,4.418
+	c1.155-0.069,2.093-0.148,2.958-0.222c0.938,0,2.886,0.074,3.536-0.449c0.722,0.301,1.083,0.301,1.441-0.074
+	c0.507,0.227,0.94,0.301,1.374,0.148c0.069-1.496-0.291-1.348-0.576-2.547c-1.806-2.996-4.62-1.347-5.918-2.468
+	c-1.298-3.075-1.587-8.92-1.515-14.913c0-1.4-0.058-3.912,0.228-5.693c0.683-0.646,1.357-1.294,2.009-1.948
+	c4.185-2.098,9.381-6.817,12.335-10.114c1.908-1.59,3.173-3.446,4.031-5.545c2.284-1.71,4.14-6.375,4.699-9.135
+	c0.745-3.223,1.423-12.706,3.919-15.774c5.363-3.629,10.143-1.01,21.334,0.788c7.794,2.394,14.791,10.711,19.769,12.735
+	c7.435,2.996,14.717,4.719,22.58,3.372c0,0.75-0.861,2.621-1.152,3.07c0,2.172,0.867,3.673,1.442,5.543
+	c2.743,7.567,1.802,18.432,3.319,26.75c0.65,3.742-1.517,8.989-0.291,12.36c1.517,4.196,4.544,8.317,6.061,12.434
+	c-0.719,3.297,2.383,0.972,4.185,4.497c1.443,0.676,4.111,0.972,6.711-0.074c1.876-0.375,2.235-1.427,3.245-1.046
+	c0.148-1.876-2.378-3.001-4.18-3.451c-0.971-0.662-1.786-0.987-2.504-1.346c1.306-0.034,1.96,0.66,3.439,0.078
+	c1.009-0.306,1.157-1.131,2.309-0.903c-0.217-1.274-1.083-2.246-2.668-2.547c-0.941-0.523-1.95-0.824-3.319-0.824
+	c-4.835-5.993-3.318-18.057-4.259-26.295c-1.139-8.957,2.858-18.351,2.951-26.522c5.1-3.84,11.307-18.904,15.159-29.069
+	c1.802-5.618,5.987-10.114,8.73-15.807c1.009-0.675,1.517-1.199,1.517-2.996c3.176-2.772,5.479-11.089,6.854-10.19
+	c2.959,1.424,7.79-0.3,9.454,0.299c0.867,1.199,1.728,1.723,4.687,1.199c2.019-0.374,6.42,0.749,8.08,0.524
+	c1.659-0.149,4.477-1.349,6.136-3.221c1.511-0.524,2.595-0.599,2.812-3.221C214.758,90.371,213.891,89.847,211.074,89.097z"/>
+</svg>
