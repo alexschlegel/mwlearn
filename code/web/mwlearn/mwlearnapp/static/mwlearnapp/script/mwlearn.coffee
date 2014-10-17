@@ -1,6 +1,20 @@
-zpad = (x,n) -> x='0' + x while (''+x).length < n; x
+window.obj2str = (obj, indent=0) ->
+  if obj? and (typeof obj=='object')
+    pre = (if indent>0 then "\n" else "")
+    pad = zpad('',indent,"\t")
+    str = []
+
+    for key,val of obj
+      str.push "#{pad}#{key}:#{obj2str(val,indent+1)}"
+
+    pre+str.join("\n")
+  else
+    obj
+window.getClass = (obj) -> obj.constructor.name
+zpad = (x,n,chr='0') -> x=chr + x while (''+x).length < n; x
 extend = (obj, prop) -> obj[key]=val for key, val of prop; obj
 copyobj = (obj) -> extend {}, obj
+copyarray = (arr) -> arr.slice(0)
 merge = (obj1, obj2) -> extend copyobj(obj1), obj2
 remove = (obj, keys) -> objc = copyobj(obj); delete(objc[key]) for key in keys; objc
 swap = (x,i1,i2) -> tmp=x[i1]; x[i1]=x[i2]; x[i2]=tmp
@@ -8,6 +22,7 @@ sum = (x,s=0,e=null) -> n=x.length; if 0<=s<n and (not e? or s<=e) then x[s] + s
 add = (a,b) -> (a[idx]+b[idx] for idx in [0..a.length-1])
 sub = (a,b) -> (a[idx]-b[idx] for idx in [0..a.length-1])
 mult = (a,b) -> (a[idx]*b[idx] for idx in [0..a.length-1])
+mean = (a) -> sum(a)/a.length
 divide = (a,b) -> (a[idx]/b[idx] for idx in [0..a.length-1])
 smult = (a,b) -> (a[idx]*b for idx in [0..a.length-1])
 mod = (x,n) -> r=x%n; if r<0 then r+n else r
@@ -43,48 +58,151 @@ equals = (x,y) ->
       false
   else
     x==y
-find = (x,v) -> f = []; f.push(i) for e,i in x when equals(e,v); f
+window.find = (x,v) -> f = []; f.push(i) for e,i in x when equals(e,v); f
 setdiff = (x,d) -> e for e in x when not equals(e,d)
-naturalAngle = (a) ->
+fixAngle = (a) ->
   a = mod(a,360)
-  if a>180 then a-=360
-  direction = if a==180 or a==0 then '' else if a>0 then ' clockwise' else ' counterclockwise'
-  "#{Math.abs(a)} degrees#{direction}"
-
+  if a>180 then a-360 else a
+naturalAngle = (a, orientation=false) ->
+  a = fixAngle(a)
+  switch a
+      when 0
+        ""
+      when 180
+        "#{Math.abs(a)}°" #upside down"
+      else
+        direction = if a>0 then ' clockwise' else ' counter clockwise'
+        orient = if orientation then ' rotated' else ''
+        "#{Math.abs(a)}°#{direction}#{orient}"
+window.naturalDirection = (a, symmetry='none') ->
+  a = fixAngle(a)
+  switch symmetry
+    when "90"
+      switch a
+        when -90, 0, 90, 180
+          ""
+        else
+          "#{naturalAngle(a)} rotated"
+    when "180"
+      switch a
+        when 0, 180
+          "vertical"
+        when -90, 90
+          "horizontal"
+        else
+          "#{naturalAngle(a)} rotated"
+    else
+      switch a
+        when 0
+          "up facing"
+        when 90
+          "right facing"
+        when 180
+          "down facing"
+        when -90
+          "left facing"
+        else
+          "#{naturalAngle(a)} rotated"
+aan = (str) -> if str.length==0 or find("aeiou",str[0]).length==0 then 'a' else 'an'
+capitalize = (str) -> str.charAt(0).toUpperCase() + str.slice(1)
+contains = (x,v) ->
+  for e in x
+    if equals(e,v) then return true
+  false
+unique = (x) -> u=[]; u.push(e) for e in x when not contains(u,e); u
+forceArray = (a) -> if a? then (if Array.isArray(a) then a else [a]) else a
+wordCount = (str) -> str.split(' ').length
+msPerT = (unit) ->
+  switch unit
+    when 'hour', 'hr', 'h'
+      3600000
+    when 'minute', 'min', 'm'
+      60000
+    when 'second', 'sec', 's'
+      1000
+    when 'millisecond', 'msec', 'ms'
+      1
+    else
+      throw 'Invalid unit'
+convertTime = (t,unitFrom,unitTo) -> t*msPerT(unitFrom)/msPerT(unitTo)
 
 window.MWLearn = class MWLearn
-  _mwlearn = []
-  _test = false
+  container: null
+  el: null
+  im: null
 
-  im: {}
+  status: null
+  background: null
 
-  constructor: (@container = document.body, options={}) ->
+  _background: null
+
+  constructor: (options={}) ->
+    options.type = options.type ? 'main'
+
+    defaults = switch options.type
+      when "main"
+        {
+          loadimages: true
+          background: 'white'
+          container: 'experiment'
+        }
+      when "status"
+        {
+          loadimages: false
+          background: 'white'
+          container: 'status'
+        }
+      else
+        {
+          loadimages: false
+          background: 'white'
+          container: document.body
+        }
+
+    @container = options.container ? defaults.container
     options.images = options.images ? []
+    options.loadimages = options.loadimages ? defaults.loadimages
+    options.practice_minutes = options.practice_minutes ? 30
+    @background = options.background ? defaults.background
+    @fixation = options.fixation ? ["Circle", [{color:"red", r:5}]]
 
-    _mwlearn = @
+    @im = {}
 
     @paper = Raphael @container
 
-    @show = new @MWShow
-    @input = new @MWInput
-    @time = new @MWTime
-    @color = new @MWColor
-    @exec = new @MWExec
-    @queue = new @MWQueue
-    @game = new @MWGame
+    @show = @Show()
+    @input = @Input()
+    @time = @Time()
+    @color = @Color()
+    @exec = @Exec()
+    @queue = @Queue()
+    @game = @Game()
 
-    @background = options.background ? "rgb(128,128,128)"
-    @_background = new @show.Rectangle
+    @_background = @show.Rectangle
       color: @background
       width: @width()
       height: @height()
 
-    @fixation = options.fixation ? ["Circle", [{color:"red", r:5}]]
+    if options.loadimages
+      imConstruct = @game.construct.srcPart("all")
+      images = options.images.concat imConstruct
+      if images.length then @LoadImages images
 
-    imConstruct = @game.construct.srcPart("all")
-    images = options.images
-    images = images.concat imConstruct
-    if images.length then @LoadImages images
+    @el = {}
+    switch options.type
+      when 'main'
+        @el.status = new MWLearn
+          type: 'status'
+          practice_minutes: options.practice_minutes
+      when 'status'
+        @el.timer = @show.Timer convertTime(options.practice_minutes,'minute','ms'),
+          prefix: 'remaining'
+          color: 'gray'
+          t: 10
+
+        @el.timer.contain()
+      else
+        null
 
   width: -> @paper.width
   height: -> @paper.height
@@ -92,25 +210,36 @@ window.MWLearn = class MWLearn
 
   LoadImages: (images) ->
     nLoaded = 0
-    p = new _mwlearn.show.Progress "Loading Images", steps:20
+    p = @show.Progress "Loading Images", steps:20
     f = -> p.update ++nLoaded/images.length
 
+    that = @
     for i in [0..images.length-1]
       qName = "image_#{images[i]}"
-      _mwlearn.queue.add qName, f, {do:false}
+      @queue.add qName, f, {do:false}
       @im[images[i]] = new Image()
       @im[images[i]].src = images[i]
-      @im[images[i]].onload = ((name) -> -> _mwlearn.queue.do name)(qName)
+      @im[images[i]].onload = ((name) -> -> that.queue.do name)(qName)
 
-  MWShow: class MWShow
-    Stimulus: class Stimulus
+
+  MWClass: class MWClass
+    root: null
+
+    constructor: (root) ->
+      @root = root
+
+  Show: -> new MWClassShow(@)
+  MWClassShow: class MWClassShow extends MWClass
+
+    Stimulus: (options={}, addDefaults=true) -> new @MWClassShowStimulus(@root, options, addDefaults)
+    MWClassShowStimulus: class MWClassShowStimulus extends MWClass
       _rotation: 0
       _scale: 1
       _translation: [0, 0]
 
       element: null
 
-      handlers: {}
+      handlers: null
 
       _defaults: {
         x: 0
@@ -120,12 +249,24 @@ window.MWLearn = class MWLearn
         color: "black"
       }
 
-      constructor: (options={}, addDefaults=true) ->
+      _show_state: true
+      _mousedown: null
+
+      constructor: (root, options, addDefaults) ->
+        super root
+
+        @handlers = {}
+
         options = @parseOptions options, {}, addDefaults
+
         @attr(name, value) for name, value of options
 
       parseOptions: (options, defaults={}, addDefaults=true) ->
-        def = if addDefaults then merge(@_defaults, defaults) else defaults
+        def = if addDefaults then merge(@_defaults, defaults) else copyobj(defaults)
+
+        if options.l? and def.x? then delete def.x
+        if options.t? and def.y? then delete def.y
+
         merge(def, options)
 
       H_STRINGS: ['width','x','cx','l','cl','lc','h']
@@ -138,10 +279,10 @@ window.MWLearn = class MWLearn
       type2lt: (type) -> @addc( (if @isH(type) then 'l' else 't') , type)
       type2hv: (type) -> if @isH(type) then 'h' else if @isV(type) then 'v' else 'other'
 
-      x2lc: (x) -> x + _mwlearn.width()/2
-      lc2x: (l) -> l - _mwlearn.width()/2
-      y2tc: (y) -> y + _mwlearn.height()/2
-      tc2y: (t) -> t - _mwlearn.height()/2
+      x2lc: (x) -> x + @root.width()/2
+      lc2x: (l) -> l - @root.width()/2
+      y2tc: (y) -> y + @root.height()/2
+      tc2y: (t) -> t - @root.height()/2
       x2l: (x, width=null) -> @x2lc(x) - (width ? @attr("width"))/2
       l2x: (l, width=null) -> @lc2x(l) + (width ? @attr("width"))/2
       y2t: (y, height=null) -> @y2tc(y) - (height ? @attr("height"))/2
@@ -154,11 +295,11 @@ window.MWLearn = class MWLearn
       extent: (type) ->
         switch @type2hv(type)
           when 'h'
-            _mwlearn.width()
+            @root.width()
           when 'v'
-            _mwlearn.height()
+            @root.height()
           else
-            (_mwlearn.height() + _mwlearn.width())/2
+            (@root.height() + @root.width())/2
 
       norm2px: (x, type) -> x*@extent(type)
       px2norm: (x, type) -> x/@extent(type)
@@ -166,7 +307,7 @@ window.MWLearn = class MWLearn
       attr: (name, value) ->
         switch name
           when "color"
-            @element.attr "fill", value
+            ret = @element.attr "fill", value
           when "width", "height"
             if value?
               sCur = @element.attr(name)
@@ -205,7 +346,11 @@ window.MWLearn = class MWLearn
             else
               ret = @attr(lt) + @attr(wh)/2
           when "mousedown"
-            ret = @mousedown value
+            if value?
+              @_mousedown = value
+              @element.mousedown(value)
+            else
+              ret = @_mousedown
           when "box"
             w = @attr "width"
             h = @attr "height"
@@ -221,13 +366,39 @@ window.MWLearn = class MWLearn
               else
                 @attr "width", w*r[1]
                 @attr "height", value[1]
+          when "show"
+            if value?
+              @_show_state = value
+              if value then @element.show() else @element.hide()
+            else
+              ret = @_show_state
           else
             ret = @element.attr(name,value)
 
         if value? then @ else ret
 
+      contain: ->
+          wTotal = @root.width()
+          hTotal = @root.height()
+
+          w = @attr "width"
+          h = @attr "height"
+          l = @attr "l"
+          t = @attr "t"
+
+          if l+w > wTotal
+            @attr "box", [Math.max(0,2*(wTotal-(l+w/2))), h]
+          else if l < 0
+            @attr "box", [Math.max(0,2*(l+w/2)), h]
+
+          if t+h > hTotal
+            @attr "box", [w, Math.max(0,2*(hTotal-(t+h/2)))]
+          else if t < 0
+            @attr "box", [w, Math.max(0,2*(t+h/2))]
+
       _settransform: ->
         @element.transform "r#{@_rotation},s#{@_scale},t#{@_translation}"
+
       rotate: (a, xc=null, yc=null) ->
         if xc? or yc?
           xc = xc ? @attr "x"
@@ -244,6 +415,7 @@ window.MWLearn = class MWLearn
 
         @_rotation = (@_rotation + a) % 360
         @_settransform()
+
       scale: (s, xc=null, yc=null) ->
         if xc? or yc?
           xc = xc ? @attr "x"
@@ -260,24 +432,41 @@ window.MWLearn = class MWLearn
 
         @_scale = s*@_scale
         @_settransform()
+
       translate: (x=0, y=0) ->
         @_translation[0] += x
         @_translation[1] += y
         @_settransform()
-      remove: -> @element.remove(); @element = null
-      mousedown: (f) -> @element.mousedown(f)
-      show: (state) -> if state then @element.show() else @element.hide()
 
-    CompoundStimulus: class CompoundStimulus extends Stimulus
-      _p: null
+      remove: -> if @element? then @element.remove(); @element = null
 
-      _show_state: true
+      mousedown: (f) -> @attr "mousedown", f
 
-      constructor: (elements, options={}, addDefaults=true) ->
-        @_p = {l:0, t:0}
+      show: (state=null) -> @attr "show", state
 
-        @element = elements
-        super options, addDefaults
+      exists: () -> @element?
+
+    CompoundStimulus: (elements, options={}) -> new @MWClassShowCompoundStimulus(@root,elements,options)
+    MWClassShowCompoundStimulus: class MWClassShowCompoundStimulus extends MWClassShowStimulus
+      _defaultElement: 0
+
+      _background: null
+
+      constructor: (root, elements, options) ->
+        options.background = options.background ? null
+
+        @element = copyarray (if elements instanceof MWClassShowCompoundStimulus then elements.element else elements)
+        super root, options, false
+
+        if options.background?
+          if options.background==true then options.background = @root.background
+
+          @_background = @root.show.Rectangle
+            color: options.background
+
+          if @element.length>0 then @_background.element.insertBefore @element[0].element
+
+          @updateBackground(["width","height","x", "y", "show","mousedown"])
 
       attr: (name, value) ->
         switch name
@@ -299,30 +488,49 @@ window.MWLearn = class MWLearn
               if n>0
                 @element[i].attr(name, fSize*sAll[i]) for i in [0..n-1]
                 @element[i].attr(xy, fSize*pAll[i]) for i in [0..n-1]
+
+                @updateBackground [name, xy]
             else
               ret = sCur
           when "l", "t"
             n = @element.length
-            ret = pCur = if n==0 then @_p[name] else Math.min (el.attr(name) for el in @element)...
+            if n==0
+              ret = pCur = switch name
+                when "l"
+                  @root.width()/2
+                when "t"
+                  @root.height()/2
+                else
+                  #nothing
+            else
+              ret = pCur = Math.min (el.attr(name) for el in @element)...
 
             if value?
-              @_p[name] = value
               pMove = value - pCur
-
-              if n>0 then el.attr(name, el.attr(name)+pMove) for el,i in @element
+              if n>0
+                el.attr(name, el.attr(name)+pMove) for el in @element
+                @updateBackground name
           when "cl", "ct"
             ret = @attr "#{name[1]}c", value
           when "box", "x", "y", "cx", "cy", "lc", "tc"
             ret = super name, value
+            if value? then @updateBackground name
           when "element_mousedown"
-            for el in @element
-              f = ((elm) -> (e,x,y) -> value(elm,x,y))(el)
-              el.attr "mousedown", f
+            ffEvent = (elm) -> (e,x,y) -> value(elm,x,y)
+            el.attr("mousedown",ffEvent(el)) for el in @element
+            if @_background?
+              @_background.attr "mousedown", ffEvent(@_background)
           else
             if value?
               el.attr(name, value) for el in @element
+
+              switch name
+                when "show", "mousedown"
+                  @updateBackground(name)
+                else
+                  #nothing
             else
-              ret = @element[0].attr name
+              ret = if @element.length>0 then @element[@_defaultElement].attr(name) else null
 
         if value? then @ else ret
 
@@ -339,20 +547,20 @@ window.MWLearn = class MWLearn
 
         @_scale = s*@_scale
         el.scale(s,xc,yc) for el in @element
-      remove: (el=null) ->
+
+      remove: (el=null, removeElement=true) ->
         if el?
-          if not (el instanceof Stimulus)
+          if not (el instanceof MWClassShowStimulus)
             idx = el
-            el = @element[idx]
           else
             idx = find(@element,el)[0]
 
-          el.remove()
+          if removeElement then @element[idx].remove()
           @element.splice(idx,1)
         else
-          el.remove() for el in @element
-      mousedown: (f) -> @element[0].mousedown(f)
-      show: (state) -> @_show_state=state; el.show(@_show_state) for el in @element
+          if removeElement then (el.remove() for el in @element)
+          @element = []
+      exists: () -> @element.length > 0
 
       addElement: (el) ->
         @element.push el
@@ -361,11 +569,141 @@ window.MWLearn = class MWLearn
         idx = @getElementIndex(el)
         @element[idx].remove()
         @element.splice idx, 1
-      getElement: (el) -> if el instanceof Stimulus then el else @element[el]
-      getElementIndex: (el) -> if not (el instanceof Stimulus) then el else find(@element,el)[0]
+      getElement: (el) -> if el instanceof MWClassShowStimulus then el else @element[el]
+      getElementIndex: (el) -> if not (el instanceof MWClassShowStimulus) then el else find(@element,el)[0]
 
-    Rectangle: class Rectangle extends Stimulus
-      constructor: (options={}) ->
+      updateBackground: (param) ->
+        if @_background?
+          for p in forceArray(param)
+            @_background.attr(p,@attr(p))
+
+    Choice: (elements, options={}) -> new MWClassShowChoice(@root,elements,options)
+    MWClassShowChoice: class MWClassShowChoice extends MWClassShowCompoundStimulus
+      choiceMade: false
+      choice: null
+      callback: null
+
+      timeout: null
+      _tStart: 0
+      _tChoice: 0
+
+      constructor: (root, elements, options) ->
+        ###
+          elements: an array of Stimulus objects
+          options:
+            choice_include: an array of indices of Stimulus objects to include
+                            as choices
+            callback: a function that takes this object and the chosen index as
+                      inputs
+            timeout: number of milliseconds before the choice times out
+        ###
+        super root, elements, options
+
+        options.choice_include = options.choice_include ? [0..@element.length-1]
+        @callback = options.callback ? null
+        @timeout = options.timeout ? null
+
+
+        for idx in options.choice_include
+          fDown = ((that,i) -> ((e,x,y) -> that.choiceEvent(i)))(@,idx)
+          @element[idx].mousedown fDown
+
+        @_tStart = @root.time.Now()
+
+        if @timeout?
+          that = @
+          window.setTimeout (-> that.choiceEvent(null)), @timeout
+
+      choiceEvent: (idx) ->
+        if not @choiceMade
+          @_tChoice = @root.time.Now()
+          @choiceMade = true
+          @choice = idx
+          that = @
+          if @callback? then @callback(that,idx)
+
+    Test: (elements, options={}) -> new MWClassShowTest(@root,elements,options)
+    MWClassShowTest: class MWClassShowTest extends MWClassShowChoice
+      correct: null
+
+      constructor: (root,elements, options={}) ->
+        ###
+          elements: an array of Stimulus objects
+          options:
+            instruct: the instruction to give
+            choice_include: an array of indices of Stimulus objects to include
+                            as choices
+            correct: the index of the correct choice / array of indices. if this
+                     is unspecified, then each Stimulus object should have a
+                     boolean property named "correct" the specifies whether the
+                     Stimulus is a correct choice.
+            pad: the padding in between each choice
+        ###
+        options.instruct = options.instruct ? "Choose one."
+        options.choice_include = forceArray(options.choice_include ? [0..elements.length])
+        options.correct = forceArray(options.correct ? null)
+        options.pad = options.pad ? 50
+
+        #record which choices are correct
+        if options.correct? then (elements[i]=options.correct[i] for i in [0..elements.length-1])
+
+        #create the instructions
+        instruct = root.show.Instructions options.instruct
+        hInstruct = instruct.attr "height"
+
+        #line up the choices and make them fill the screen
+
+        #get the maximum final element dimensions
+        nEl = elements.length
+
+        wFinalMax = (root.width() - (nEl+1)*options.pad)/nEl
+        hFinalMax = 2*(root.height()/2 - hInstruct - 2*options.pad)
+
+        #maximum current dimensions
+        elW = (el.attr "width" for el in elements)
+        elH = (el.attr "height" for el in elements)
+
+        wMax = Math.max(elW...)
+        hMax = Math.max(elH...)
+
+        #target scale
+        wScale = wFinalMax/wMax
+        hScale = hFinalMax/hMax
+        scale = Math.min(wScale,hScale)
+
+        #scale the elements
+        for el in elements
+          el.attr "box", [scale*el.attr("width"), scale*el.attr("height")]
+
+        #line up the choices
+        elW = (el.attr "width" for el in elements)
+        elH = (el.attr "height" for el in elements)
+        hMax = Math.max(elH...)
+
+        wTotal = sum(elW) + options.pad*(nEl-1) - elW[0]/2 - elW[-1..]/2
+        xCur = -wTotal/2
+        for el,idx in elements
+          el.attr "x", xCur
+          xCur += elW[idx] + options.pad
+
+        #position the instructions
+        instruct.attr "y", hMax/2+2*options.pad
+
+        #add the instructions to the elements
+        elements = copyarray(elements)
+        elements.push instruct
+
+        super root, elements, options
+
+      choiceEvent: (idx) ->
+        @correct = if idx? then @element[idx].correct else false
+        super idx
+
+    Rectangle: (options={}) -> new MWClassShowRectangle(@root,options)
+    MWClassShowRectangle: class MWClassShowRectangle extends MWClassShowStimulus
+      constructor: (root,options) ->
+        @root = root
+
         options = @parseOptions options
 
         l = @x2l(options.x, options.width)
@@ -373,19 +711,22 @@ window.MWLearn = class MWLearn
         w = options.width
         h = options.height
 
-        @element = _mwlearn.paper.rect l, t, w, h
+        @element = root.paper.rect l, t, w, h
         options = remove options, ['width', 'height', 'x', 'y']
 
-        super options, false
+        super root, options, false
         @element.attr "stroke", "none"
 
-    Square: class Square extends Rectangle
-      constructor: (options={}) ->
+    Square: (options={}) -> new MWClassShowSquare(@root,options)
+    MWClassShowSquare: class MWClassShowSquare extends MWClassShowRectangle
+      constructor: (root,options) ->
+        @root = root
+
         if options.width? then options.height = options.width
         if options.height? then options.width = options.height
         options = @parseOptions options
 
-        super options
+        super root, options
 
       attr: (name, value) ->
         switch name
@@ -395,8 +736,11 @@ window.MWLearn = class MWLearn
           else
             super name, value
 
-    Circle: class Circle extends Stimulus
-      constructor: (options={}) ->
+    Circle: (options={}) -> new MWClassShowCircle(@root,options)
+    MWClassShowCircle: class MWClassShowCircle extends MWClassShowStimulus
+      constructor: (root,options) ->
+        @root = root
+
         options = @parseOptions options, {
           r: @_defaults.width/2
         }
@@ -405,10 +749,10 @@ window.MWLearn = class MWLearn
         ct = @y2t(options.y, 2*options.r) + options.r
         r = options.r
 
-        @element = _mwlearn.paper.circle cl, ct, r
+        @element = root.paper.circle cl, ct, r
         options = remove options, ['x', 'y', 'r', 'width', 'height']
 
-        super options, false
+        super root, options, false
         @element.attr "stroke", "none"
 
       attr: (name, value) ->
@@ -418,32 +762,55 @@ window.MWLearn = class MWLearn
               super "r", value/2
             else
               2*super("r")
-          when "x", "y"
-            super "c#{name}", value
+          when "l", "t"
+            xy = "c#{@type2xy(name)}"
+            wh = @type2wh(name)
+
+            if value?
+              @element.attr(xy, value + @attr(wh)/2)
+            else
+              ret = @element.attr(xy) - @attr(wh)/2
           else
             super name, value
 
-    Text: class Text extends Stimulus
-      constructor: (text, options={}) ->
+    Text: (text, options={}) -> new MWClassShowText(@root,text,options)
+    MWClassShowText: class MWClassShowText extends MWClassShowStimulus
+      _max_width: 0
+      _max_height: 0
+
+      constructor: (root, text, options) ->
+        @root = root
+
+        @element = root.paper.text 0,0,text
+
         options = @parseOptions options, {
           "font-family": "Arial"
-          "font-size": "18pt"
+          "font-size": 18
           "text-anchor": "start"
+          "max-width": root.width()
+          "max-height": root.height()
         }
 
-        @element = _mwlearn.paper.text 0,0,text
         options = remove options, ['width', 'height']
 
-        super options, false
+        super root, options, false
 
       attr: (name, value) ->
         switch name
+          when "t"
+            if value?
+              super name, value+@attr("height")/2
+            else
+              ret = super(name)-@attr("height")/2
           when "width", "height"
             if value?
               sCur = @attr name
               f = value / sCur
 
-              @attr "font-size", @attr("font-size")*f
+              fontSize = @attr 'font-size'
+              fontSizeNew = f*fontSize
+
+              @attr "font-size", fontSizeNew
             else
               ret = @element.getBBox()[name]
           when "font-size"
@@ -457,27 +824,111 @@ window.MWLearn = class MWLearn
               @attr "y", y
             else
               ret = super name
+          when "max-width"
+            if value?
+              @_max_width = value
+
+              if @attr("width") > @_max_width then @attr("width",@_max_width)
+            else
+              ret = @_max_width
+          when "max-height"
+            if value?
+              @_max_height = value
+
+              if @attr("height") > @_max_height then @attr("height",@_max_height)
+            else
+              ret = @_max_height
           else
             ret = super name, value
 
         if value? then @ else ret
 
-    Instructions: class Instructions extends Text
-      constructor: (text, options={}) ->
+    Instructions: (text, options={}) -> new MWClassShowInstructions(@root, text, options)
+    MWClassShowInstructions: class MWClassShowInstructions extends MWClassShowText
+      constructor: (root, text, options) ->
+        @root = root
+
         options = @parseOptions options, {
-          y: -32
           "font-family": "Arial"
-          "font-size": "36pt"
+          "font-size": 36
         }
 
-        super text, options
+        super root, text, options
 
-    Image: class Image extends Stimulus
-      constructor: (src, options={}) ->
-        bAutoSize = src of _mwlearn.im
+    Timer: (tTotal, options={}) -> new MWClassShowTimer(@root, tTotal, options)
+    MWClassShowTimer: class MWClassShowTimer extends MWClassShowText
+      _intervalID: null
+
+      tTotal: 0
+      tTimer: 0
+      tGo: null
+
+      showms: false
+      prefix: null
+
+      constructor: (root, tTotal, options) ->
+        @tTotal = tTotal
+        @showms = options.showms ? false
+        @prefix = options.prefix ? null
+        @tUpdate = options.update_interval ? (if @showms then 10 else 250)
+
+        @reset false
+
+        super root, @string(), options
+
+      remaining: -> Math.max(0,if @tGo? then (@tTimer-(@root.time.Now()-@tGo)) else @tTimer)
+
+      reset: (render=true) ->
+        @tTimer = @tTotal
+        if render then @render()
+
+      string: ->
+        t = @remaining()
+
+        hours = Math.floor(convertTime(t,'ms','hour'))
+        t -= convertTime(hours,'hour','ms')
+
+        minutes = Math.floor(convertTime(t,'ms','minute'))
+        t -= convertTime(minutes,'minute','ms')
+
+        seconds = Math.floor(convertTime(t,'ms','second'))
+        t -= convertTime(seconds,'second','ms')
+
+        strHours = if hours>0 then "#{zpad(hours,2)}:" else ''
+        strMinutes = "#{zpad(minutes,2)}:"
+        strSeconds = zpad(seconds,2)
+        strMS = if @showms then ".#{t}" else ''
+
+        prefix = if @prefix? then "#{@prefix}: " else ''
+        "#{prefix}#{strHours}#{strMinutes}#{strSeconds}#{strMS}"
+
+      render: -> @attr "text", @string()
+
+      update: ->
+        if @remaining() <= 0 then @stop
+        @render()
+
+      go: ->
+        @tGo = @root.time.Now()
+
+        that = @
+        fInterval = -> that.update()
+        @_intervalID = window.setInterval fInterval, @tUpdate
+
+      stop: ->
+        if @_intervalID? then clearInterval(@_intervalID)
+        @tTimer = @remaining()
+        @tGo = null
+
+    Image: (src, options={}) -> new MWClassShowImage(@root, src, options)
+    MWClassShowImage: class MWClassShowImage extends MWClassShowStimulus
+      constructor: (root, src, options) ->
+        @root = root
+
+        bAutoSize = src of root.im
         options = @parseOptions options, {
-          width: if bAutoSize then _mwlearn.im[src].width else @_defaults.width
-          height: if bAutoSize then _mwlearn.im[src].height else @_defaults.height
+          width: if bAutoSize then root.im[src].width else @_defaults.width
+          height: if bAutoSize then root.im[src].height else @_defaults.height
         }
 
         l = @x2l(options.x, options.width)
@@ -485,10 +936,10 @@ window.MWLearn = class MWLearn
         w = options.width
         h = options.height
 
-        @element = _mwlearn.paper.image src, l, t, w, h
+        @element = root.paper.image src, l, t, w, h
         options = remove options, ['x', 'y', 'width', 'height']
 
-        super options, false
+        super root, options, false
 
       attr: (name, value) ->
         switch name
@@ -497,22 +948,25 @@ window.MWLearn = class MWLearn
           else
             super name, value
 
-    ColorMask: class ColorMask extends CompoundStimulus
+    ColorMask: (src, options={}) -> new MWClassShowColorMask(@root,src,options)
+    MWClassShowColorMask: class MWClassShowColorMask extends MWClassShowCompoundStimulus
       _background: null
       _im: null
 
-      constructor: (src, options={}) ->
-        bAutoSize = src of _mwlearn.im
+      constructor: (root, src, options) ->
+        @root = root
+
+        bAutoSize = src of root.im
         options = @parseOptions options, {
-          width: if bAutoSize then _mwlearn.im[src].width else @_defaults.width
-          height: if bAutoSize then _mwlearn.im[src].height else @_defaults.height
+          width: if bAutoSize then root.im[src].width else @_defaults.width
+          height: if bAutoSize then root.im[src].height else @_defaults.height
         }
 
         elements = []
-        if options.color != "none" then elements.push (@_background = new _mwlearn.show.Rectangle)
-        elements.push (@_im = new _mwlearn.show.Image src)
+        if options.color != "none" then elements.push (@_background = root.show.Rectangle())
+        elements.push (@_im = root.show.Image src)
 
-        super elements, options
+        super root, elements, options
 
       attr: (name, value) ->
         switch name
@@ -526,33 +980,42 @@ window.MWLearn = class MWLearn
 
         if value? then @ else ret
 
-    ConstructPart: class ConstructPart extends ColorMask
+    ConstructPart: (i, position, options={}) -> new MWClassShowConstructPart(@root,i,position,options)
+    MWClassShowConstructPart: class MWClassShowConstructPart extends MWClassShowColorMask
       @_idx: null
       @_position: null
 
-      constructor: (i, position, options={}) ->
+      constructor: (root, i, position, options) ->
         @_idx = i
         @_position = position
-        src = _mwlearn.game.construct.srcPart @_idx, @_position
-        super src, options
+        src = root.game.construct.srcPart @_idx, @_position
+        super root, src, options
 
       idx: -> @_idx
 
-    ConstructFigure: class ConstructFigure extends CompoundStimulus
+    ConstructFigure: (parts, options={}) -> new MWClassShowConstructFigure(@root,parts,options)
+    MWClassShowConstructFigure: class MWClassShowConstructFigure extends MWClassShowCompoundStimulus
       @_rot: 0
       @_idx: null
+      @_d: 0
 
-      constructor: (parts, options={}) ->
-        if parts.length == 4
+      constructor: (root, parts, options) ->
+        @root = root
+
+        if Array.isArray(parts)
           @_idx = parts
+          @_d = mean(@_idx)/@root.game.construct.nPart
         else if parts>=0 and parts<=1
-          @_idx = _mwlearn.game.construct.pick(4,parts)
+          @_idx = root.game.construct.pick(4,parts)
+          @_d = parts
         else
           throw "Invalid parts"
 
         options = @parseOptions options, {
-          width: 2*_mwlearn.im[_mwlearn.game.construct.srcPart(0)].width
-          height: 2*_mwlearn.im[_mwlearn.game.construct.srcPart(0)].height
+          # width: 2*root.im[root.game.construct.srcPart(0)].width
+          # height: 2*root.im[root.game.construct.srcPart(0)].height
+          width: 200
+          height: 200
         }
 
         wPart = options.width/2
@@ -560,10 +1023,13 @@ window.MWLearn = class MWLearn
         owPart = wPart/2
         ohPart = hPart/2
 
-        xl = options.x - owPart
-        xr = options.x + owPart
-        yt = options.y - ohPart
-        yb = options.y + ohPart
+        xFigure = options.x ? @l2x(options.l,options.width)
+        yFigure = options.y ? @t2y(options.t,options.height)
+
+        xl = xFigure - owPart
+        xr = xFigure + owPart
+        yt = yFigure - ohPart
+        yb = yFigure + ohPart
 
         xPart = [xr, xr, xl, xl]
         yPart = [yt, yb, yb, yt]
@@ -573,9 +1039,9 @@ window.MWLearn = class MWLearn
           height: hPart
         }
 
-        elements = [new _mwlearn.show.Rectangle(merge options, {
-          width: options.width-2
-          height: options.height-2
+        elements = [root.show.Rectangle(merge options, {
+          width: options.width-4
+          height: options.height-4
           color: options.color
         })]
         for i in [0..3]
@@ -584,28 +1050,79 @@ window.MWLearn = class MWLearn
             y:yPart[i]
             color: "none"
           }
-          src = _mwlearn.game.construct.srcPart @_idx[i], i
-          elements.push (new _mwlearn.show.Image src, opt)
+          src = root.game.construct.srcPart @_idx[i], i
+          elements.push (root.show.Image src, opt)
+
 
         options = remove options, ['x', 'y', 'width', 'height', 'color']
 
-        super elements, options, false
+        super root, elements, options, false
 
       idx: -> @_idx
 
-    AssemblagePart: class AssemblagePart extends Stimulus
+      createDistractors: (n) ->
+        distractors = (null for [1..n])
+
+        replace = [0..@_idx.length-1]
+        randomize(replace)
+
+        for idx in [0..n-1]
+          parts = copyarray(@_idx)
+          parts[replace[idx]] = @root.game.construct.pickOne(@_d, parts[replace[idx]])
+          distractors[idx] = @root.show.ConstructFigure parts,
+            width: @attr "width"
+            height: @attr "height"
+            color: @attr "color"
+
+
+    ConstructPrompt: (figure, options={}) -> new MWClassShowConstructPrompt(@root,figure,options)
+    MWClassShowConstructPrompt: class MWClassShowConstructPrompt extends MWClassShowCompoundStimulus
+      _idx: null
+
+      constructor: (root, figure, options) ->
+        @_idx = figure._idx
+        nPart = @_idx.length
+
+        w = figure.attr("width")/2
+        h = figure.attr("height")/2
+        xPad = w/2
+
+        options = @parseOptions options, {
+          color: figure.attr("color")
+          width: nPart*w + (nPart-1)*xPad
+          height: h
+        }
+
+        xPrompt = options.x ? @l2x(options.l,options.width)
+        yPrompt = options.y ? @t2y(options.t,options.height)
+
+        xStart = xPrompt - nPart/2*w - Math.floor(nPart/2)*xPad
+
+        cp = (0 for [1..nPart])
+        for part,idx in @_idx
+          x = xStart + (w+xPad)*idx + w/2
+          cp[idx] = root.show.ConstructPart part, idx,
+            width: w
+            height: h
+            x: x
+            y: yPrompt
+
+        super root, cp, options
+
+    AssemblagePart: (part, options={}) -> new MWClassShowAssemblagePart(@root,part,options)
+    MWClassShowAssemblagePart: class MWClassShowAssemblagePart extends MWClassShowStimulus
       _param: null
       _assemblage = null
 
       part: null
 
-      constructor: (part, options={}) ->
+      constructor: (root, part, options) ->
         options.size = options.size ? 100
         options.thickness = options.thickness ? 10
 
         @part = part
 
-        @_param = merge _mwlearn.game.assemblage.param(@part),
+        @_param = merge root.game.assemblage.param(@part),
           index: null
           width: options.size
           height: options.size
@@ -616,12 +1133,12 @@ window.MWLearn = class MWLearn
           parent: null
           attachment: [null,null,null,null]
 
-        @element = mwl.paper.path(@constructPath(@_param,false))
-        super options
+        @element = root.paper.path(@constructPath(@_param,false))
+        super root, options
 
         @attr "stroke-linecap", "round"
         @attr "stroke-linejoin", "round"
-        @attr "fill", _mwlearn.background
+        @attr "fill", root.background
 
       attr: (name, value) ->
         switch name
@@ -673,6 +1190,7 @@ window.MWLearn = class MWLearn
 
         origin = add(mult(rotate([0,0],a,[0.5,0.5]),s),offset)
         path = "M" + origin
+
         for op in @_param.definition
           path += op[0]
           if op.length>1
@@ -696,8 +1214,8 @@ window.MWLearn = class MWLearn
           else throw 'WTF?'
 
       naturalLocation: (excludePart=null, excludeNeighbor=null) ->
-        if excludePart? then excludePart = @_assemblage.getElementIndex(excludePart)
-        if excludeNeighbor? then excludeNeighbor = @_assemblage.getElementIndex(excludeNeighbor)
+        if excludePart? then excludePart = @_assemblage.part(excludePart)._param.idx
+        if excludeNeighbor? then excludeNeighbor = @_assemblage.part(excludeNeighbor)._param.idx
 
         loc = ""
         sep = " "
@@ -715,7 +1233,7 @@ window.MWLearn = class MWLearn
           nOther = iOther.length
 
           gridMe = @_param.grid
-          gridOther = (@_assemblage.element[i]._param.grid for i in iOther)
+          gridOther = (@_assemblage.part(idx)._param.grid for idx in iOther)
           gridOx = (g[0] for g in gridOther)
           gridOy = (g[1] for g in gridOther)
 
@@ -728,10 +1246,10 @@ window.MWLearn = class MWLearn
           if gridMe[0]==mnX and gridMe[0]==mxX
             h = null
           else if gridMe[0] <= mnX
-            h = "leftmost"
+            h = "left"
             hAbs = if gridMe[0]!=mnX then h
           else if gridMe[0] >= mxX
-            h = "rightmost"
+            h = "right"
             hAbs = if gridMe[0]!=mxX then h
           else
             h = null
@@ -781,7 +1299,7 @@ window.MWLearn = class MWLearn
         "#{loc}#{sep}#{@part}#{extra}"
 
       naturalRelativeLocation: (neighbor, includeNeighbor=false, excludePart=null) ->
-        neighbor = @_assemblage.getElement(neighbor)
+        neighbor = @_assemblage.part(neighbor)
         p1 = @_param.grid
         p2 = neighbor._param.grid
 
@@ -801,49 +1319,70 @@ window.MWLearn = class MWLearn
           if neighborLoc? then "#{loc} the #{neighborLoc}" else null
         else
           loc
-      naturalOrientation: ->
-        a = naturalAngle(90*@_param.orientation)
-        if not @_param.symmetric and @_param.orientation!=0 then "rotated #{a}" else ""
+      naturalOrientation: -> naturalDirection(90*@_param.orientation, @_param.symmetry)
       naturalName: (fullName=false) ->
         orientation = if fullName then @naturalOrientation() else ""
-        if orientation.length then orientation = ", #{orientation},"
-        "#{@part}#{orientation}"
+        if orientation.length then orientation = "#{orientation} "
+        "#{orientation}#{@part}"
       naturalDefinition: ->
-        parent = @_assemblage.element[@_param.parent]
+        parent = if @_param.parent? then @_assemblage.part(@_param.parent) else null
 
         partName = @naturalName(true)
-        partLocation = @naturalRelativeLocation(parent,true,@)
-        "#{partName} #{partLocation}"
+        partLocation = if parent? then " #{@naturalRelativeLocation(parent,true,@)}" else ""
+        "#{partName}#{partLocation}"
 
-
-    Assemblage: class Assemblage extends CompoundStimulus
+    Assemblage: (options={}) -> new MWClassShowAssemblage(@root, options)
+    MWClassShowAssemblage: class MWClassShowAssemblage extends MWClassShowCompoundStimulus
       _options: null
       _history: null
       _instruction: null
 
       _gridExtent: null
 
-      constructor: (options={}) ->
+      existingParts: null
+      possibleParts: null
+
+      correct: true
+
+      constructor: (root, options) ->
+        parts = root.game.assemblage.parts()
+
+        options.x = options.x ? 0
+        options.y = options.y ? 0
+        options.imax = options.imax ? parts.length-1
+        options.background = options.background ? true
+        options.correct = options.correct ? true
+
+        @existingParts = []
+        @possibleParts = parts[0..options.imax]
+
         @_options = options
         @_history = []
         @_instruction = []
         @_grid = {min: [0,0], max: [0,0]}
 
-        super [], options
+        @correct = options.correct
+
+        super root, [], options
 
       attr: (name, value) ->
         switch name
           when "thickness"
-            if not value?
-              if @element.length>0 then @element[0].attr(name,value) else null
+            if value?
+              super name, value
+            else
+              if @numParts()>0 then @part(0).attr(name) else null
+          when "box"
+            if value?
+              wOld = @attr "width"
+              ret = super name, value
+              wNew = @attr "width"
+              @attr "thickness", @attr("thickness") * wNew / wOld
+              ret
             else
               super name, value
-          when "box"
-            wOld = @attr "width"
-            ret = super name, value
-            wNew = @attr "width"
-            @attr "thickness", @attr("thickness") * wNew / wOld
-            ret
+          when "color"
+            if value? then part.attr("color",value) for part in @part() else super(name)
           else
             super name, value
 
@@ -851,42 +1390,55 @@ window.MWLearn = class MWLearn
         a = 90*steps
 
         super a, xc, yc
-        x = (el._param.grid for el in @element)
-        el._param.grid = around(rotate(el._param.grid,a)) for el in @element
-        y = (el._param.grid for el in @element)
+        el._param.grid = around(rotate(el._param.grid,a)) for el,i in @part()
 
         @addEvent 'rotate', a
+
+      numParts: () -> @element.length
+      numSteps: () -> @_history.length
+
+      part: (part=null) ->
+        if part instanceof MWClassShowStimulus
+          part
+        else if part?
+          @element[@partElementIndex(part)]
+        else if @numParts()>0
+          @element[@partElementIndex(0)..]
+        else
+          []
+      partElementIndex: (part) ->
+        if part instanceof MWClassShowStimulus
+          @partElementIndex(part._param.idx)
+        else
+          part
 
       addEvent: (eventType,info) ->
         @_history.push [eventType, info]
 
-        #get the instruction
         switch eventType
           when "add"
-            el = @element[info]
-            idxParent = el._param.parent
+            el = @part(info)
 
-            if idxParent?
-              instruct = "Add a #{el.naturalDefinition()}."
-            else
-              instruct = "Imagine a #{el.naturalName()}."
+            action = if el._param.parent? then "Add" else "Imagine"
+            thing = el.naturalDefinition()
+            instruct = "#{action} #{aan(thing)} #{thing}"
           when "remove"
-            el = @element[info]
-            instruct = "Remove the #{el.naturalLocation()}."
+            el = @part(info)
+            instruct = "Remove the #{el.naturalLocation()}"
           when "rotate"
-            instruct = "Rotate the #{@naturalName()} #{naturalAngle(info)}."
+            instruct = "Rotate the #{@naturalName()} #{naturalAngle(info)}"
           else
-            throw 'Invalid event type.'
+            throw 'Invalid event type'
         @_instruction.push instruct
 
-      removeElement: (el) ->
-        el = @getElement(el)
-        idx = el._param.idx
+      removePart: (part) ->
+        part = @part(part)
+        idx = part._param.idx
 
         #remove the connections
-        for neighbor in el._param.attachment
+        for neighbor in part._param.attachment
           if neighbor?
-            neighbor = @element[neighbor]
+            neighbor = @part(neighbor)
             conn = find(neighbor._param.attachment,idx)[0]
             neighbor._param.attachment[conn] = null
             if neighbor._param.parent==idx then neighbor._param.parent = null
@@ -895,34 +1447,36 @@ window.MWLearn = class MWLearn
         @addEvent 'remove', idx
 
         #remove the element
-        super idx
+        @removeElement(@partElementIndex(idx))
 
-      addElement: (part, neighbor=null, sidePart=0, sideNeighbor=0, options={}) ->
+      addPart: (partName, neighbor=null, sidePart=0, sideNeighbor=0, options={}) ->
         options = merge(@_options, options)
 
         xCur = @attr "x"
         yCur = @attr "y"
 
-        aPart = new _mwlearn.show.AssemblagePart part, options
-        aPart._assemblage = @
+        part = @root.show.AssemblagePart partName, options
+        part._assemblage = @
 
-        super aPart
-        aPart._param.idx = @element.length - 1
+        @addElement part
+        part._param.idx = @numParts()-1
+
+        if find(@existingParts,partName).length==0 then @existingParts.push partName
 
         if neighbor?
-          neighbor = @getElement(neighbor)
+          neighbor = @part(neighbor)
 
-          aPart._param.parent = neighbor._param.idx
-          neighbor._param.attachment[sideNeighbor] = aPart._param.idx
-          aPart._param.attachment[sidePart] = neighbor._param.idx
+          part._param.parent = neighbor._param.idx
+          neighbor._param.attachment[sideNeighbor] = part._param.idx
+          part._param.attachment[sidePart] = neighbor._param.idx
 
           #orientation of the part to match with the neighbor
           orientation = mod( mod(sideNeighbor+2,4) - sidePart + neighbor._param.orientation,4)
           #direction to move from the neighbor
           gridRel = neighbor.side2direction(sideNeighbor)
 
-          wP = aPart.attr "width"
-          hP = aPart.attr "height"
+          wP = part.attr "width"
+          hP = part.attr "height"
 
           xN = neighbor.attr "x"
           yN = neighbor.attr "y"
@@ -934,103 +1488,161 @@ window.MWLearn = class MWLearn
           x = xN + r*gridRel[0]
           y = yN + r*gridRel[1]
 
-          aPart._param.grid = add(neighbor._param.grid, gridRel)
+          part._param.grid = add(neighbor._param.grid, gridRel)
 
-          @_grid.min[0] = Math.min(@_grid.min[0], aPart._param.grid[0])
-          @_grid.max[0] = Math.max(@_grid.max[0], aPart._param.grid[0])
-          @_grid.min[1] = Math.min(@_grid.min[1], aPart._param.grid[1])
-          @_grid.max[1] = Math.max(@_grid.max[1], aPart._param.grid[1])
+          @_grid.min[0] = Math.min(@_grid.min[0], part._param.grid[0])
+          @_grid.max[0] = Math.max(@_grid.max[0], part._param.grid[0])
+          @_grid.min[1] = Math.min(@_grid.min[1], part._param.grid[1])
+          @_grid.max[1] = Math.max(@_grid.max[1], part._param.grid[1])
         else
           orientation = options.orientation ? 0
           x = @attr "x"
           y = @attr "y"
 
-        aPart.attr "x", x
-        aPart.attr "y", y
-        aPart.attr "orientation", orientation
-        aPart.scale @._scale
+        part.attr "x", x
+        part.attr "y", y
+        part.attr "orientation", orientation
+        part.scale @._scale
 
         @attr "x", xCur
         @attr "y", yCur
 
-        @addEvent 'add', aPart._param.idx
-        aPart
+        @addEvent 'add', part._param.idx
+        part
 
-      addSet: (setParam) -> @addElement param... for param in setParam
+      addSet: (setParam) -> @addPart param... for param in setParam
 
       getSet: ->
-        setParam = ([] for [1..@element.length])
-        for el,i in @element
-          part = el.part
-          parent = el._param.parent
+        setParam = ([] for [1..@numParts()])
+        for part,i in @part()
+          partName = part.part
+          parent = part._param.parent
           if parent?
-            sidePart = find(el._param.attachment,parent)[0]
-            sideParent = find(@element[parent]._param.attachment,el._param.idx)[0]
+            sidePart = find(part._param.attachment,parent)[0]
+            sideParent = find(@part(parent)._param.attachment,part._param.idx)[0]
           else
             sidePart = sideParent = null
 
-          setParam[i] = [part,parent,sidePart,sideParent]
+          setParam[i] = [partName,parent,sidePart,sideParent]
         setParam
 
-      addRandom: (n=1, iMax=null) ->
-        appendage = @pickAppendage(iMax)
-        options = if !@element.length>0 then {} else {orientation: randomInt(0,3)}
-        ret = if appendage? then @addElement appendage...,options else null
-        if n>1 then [ret, @addRandom(n-1,iMax)]
+      addRandom: (n=1) ->
+        appendage = @pickAppendage()
+        options = if !@numParts()>0 then {} else {orientation: randomInt(0,3)}
+        ret = if appendage? then @addPart appendage...,options else null
+        if n>1 then [ret, @addRandom(n-1)]
 
-      naturalName: ->
-        if @element.length==1 then @element[0].naturalName() else "image"
+      naturalName: -> if @numParts()==1 then @part(0).naturalName() else "image"
+
+      getUniqueParts: -> unique (part.part for part in @part())
 
       getOccupiedPositions: (excludePart=null) ->
-        if excludePart? then excludePart = @getElement(excludePart)
-        (el._param.grid for el in @element when el!=excludePart)
+        if excludePart? then excludePart = @part(excludePart)
+        (part._param.grid for part in @part() when part!=excludePart)
+
       getAllParts: (excludePart=null) ->
-        if excludePart? then excludePart = @getElement(excludePart)
-        (el.part for el in @element when el!=excludePart)
+        if excludePart? then excludePart = @part(excludePart)
+        (part.part for part in @part() when part!=excludePart)
+
       findPart: (part, excludePart=null) -> find(@getAllParts(excludePart), part)
 
       findOpenConnections: (excludePart=null) ->
-        if @element.length==0
+        if @numParts()==0
           [[null,0]]
         else
-          if excludePart? then excludePart = @getElement(excludePart)
+          if excludePart? then excludePart = @part(excludePart)
 
           occupied = @getOccupiedPositions()
 
           conn = []
-          for el,i in @element when el!=excludePart
-            for side in _mwlearn.game.assemblage.param(el.part).connects
-              if not el._param.attachment[side]?
-                grid = add(el._param.grid, el.side2direction(side))
+          for part,i in @part() when part!=excludePart
+            for side in @root.game.assemblage.param(part.part).connects
+              if not part._param.attachment[side]?
+                grid = add(part._param.grid, part.side2direction(side))
                 if find(occupied,grid).length==0
                   conn.push [i, side]
           conn
 
-      partCount: (part, excludePart=null) -> find(@getAllParts(excludePart),part).length
+      partCount: (part, excludePart=null) -> @findPart(part,excludePart).length
 
-      pickPart: (iMax=null) ->
-        parts = _mwlearn.game.assemblage.parts()
-        iMax = iMax ? parts.length-1
-        pickFrom(parts[0..iMax])
-      pickSide: (part) -> pickFrom(_mwlearn.game.assemblage.param(part).connects)
-      pickAppendage: (iMax=null, excludePart=null) ->
+      pickPart: -> pickFrom @possibleParts
+
+      pickSide: (part) -> pickFrom(@root.game.assemblage.param(part).connects)
+
+      pickAppendage: (excludePart=null) ->
         conns = @findOpenConnections(excludePart)
         conn = pickFrom(conns)
 
         if conn?
           #make it's a square if we only have one possible connection
-          part = if conn.length==1 and conn[0]? then 'square' else @pickPart(iMax)
+          part = if conn.length==1 and conn[0]? then 'square' else @pickPart()
           side = @pickSide(part)
 
           [part, conn[0], side, conn[1]]
         else
           null
 
-    Progress: class Progress extends CompoundStimulus
+      findReplacementsGivenParts: (part, parts) ->
+        conn = @root.game.assemblage.param(part).connects
+
+        replacementParts = []
+        for replacement in parts
+          if part!=replacement
+            goodReplacement = true
+            for c in conn
+              if find(@root.game.assemblage.param(replacement).connects,c).length==0
+                goodReplacement = false
+                break
+            if goodReplacement then replacementParts.push replacement
+
+        replacementParts
+
+      findReplacements: (part) ->
+        #first try with existing parts unless we're a small assemblage
+        if @numParts() > 2
+          replacementParts = @findReplacementsGivenParts(part, @existingParts)
+        else
+          replacementParts = []
+
+        #expand to all parts
+        if replacementParts.length==0
+          replacementParts = @findReplacementsGivenParts(part, @possibleParts)
+
+        replacementParts
+
+      pickReplacement: (part) -> pickFrom(@findReplacements(part))
+
+      createDistractor: (options={}) ->
+        options.color = options.color ? @attr "color"
+        options.correct = options.correct ? false
+
+        #construct the distractor set
+        setParam = @getSet()
+        idx = randomInt(0,setParam.length-1)
+        setParam[idx][0] = @pickReplacement(setParam[idx][0])
+
+        #create the distractor
+        distractor = @root.show.Assemblage options
+        distractor.addSet setParam
+        distractor.rotate @_rotation/90
+
+        distractor
+
+    AssemblageInstruction: (a, step=null, options={}) -> new MWClassShowAssemblageInstruction(@root, a, step, options)
+    MWClassShowAssemblageInstruction: class MWClassShowAssemblageInstruction extends MWClassShowInstructions
+      constructor: (root, a, step=null, options) ->
+        options.y = options.y ? 0
+        instructions = if step? then a._instruction[step] else a._instruction.join("\n")
+        super root, instructions, options
+
+    Progress: (info, options={}) -> new MWClassShowProgress(@root,info,options)
+    MWClassShowProgress: class MWClassShowProgress extends MWClassShowCompoundStimulus
       _steps: 0
       _width: 0
 
-      constructor: (info, options={}) ->
+      constructor: (root, info, options) ->
+        @root = root
+
         options = @parseOptions options, {
           width: 300
           steps: 10
@@ -1041,16 +1653,16 @@ window.MWLearn = class MWLearn
         @_steps = options.steps
         @_width = options.width
 
-        elements = [new _mwlearn.show.Instructions info]
+        elements = [root.show.Instructions info]
 
         for i in [0..@_steps-1]
-          bit = new _mwlearn.show.Circle {r: options.r}
+          bit = root.show.Circle {r: options.r}
           bit.show(false)
           elements.push(bit)
 
         delete options.r
 
-        super elements, options
+        super root, elements, options
 
       attr: (name, value) ->
         switch name
@@ -1098,8 +1710,23 @@ window.MWLearn = class MWLearn
 
         if f>=1 then @remove()
 
-  MWInput: class MWInput
+  Input: -> new MWClassInput(@)
+  MWClassInput: class MWClassInput extends MWClass
     _event_handlers: null
+
+    constructor: (root) ->
+      super root
+
+      @_event_handlers = {
+        key_down: []
+        mouse_down: []
+      }
+
+      fKey = (obj,eventType) -> ((evt) -> obj._handleKey(evt,eventType))
+      fMouse = (obj,eventType) -> ((evt) -> obj._handleMouse(evt,eventType))
+
+      $(document).keydown( fKey(@,'down') )
+      $(document).mousedown( fMouse(@,'down') )
 
     _handleEvent: (evt, handlerType, fCheckHandler) ->
       handlers = @_event_handlers[handlerType]
@@ -1126,18 +1753,6 @@ window.MWLearn = class MWLearn
       fCheckHandler = (h) -> h.button=='any' or evt.which==h.button
 
       @_handleEvent(evt,handlerType,fCheckHandler)
-
-    constructor: ->
-      @_event_handlers = {
-        key_down: []
-        mouse_down: []
-      }
-
-      fKey = (obj,eventType) -> ((evt) -> obj._handleKey(evt,eventType))
-      fMouse = (obj,eventType) -> ((evt) -> obj._handleMouse(evt,eventType))
-
-      $(document).keydown( fKey(@,'down') )
-      $(document).mousedown( fMouse(@,'down') )
 
     addHandler: (type,options=null) ->
       #common options
@@ -1194,10 +1809,12 @@ window.MWLearn = class MWLearn
           3
         else throw "Invalid button"
 
-  MWTime: class MWTime
+  Time: -> new MWClassTime(@)
+  MWClassTime: class MWClassTime extends MWClass
     Now: -> new Date().getTime()
 
-  MWColor: class MWColor
+  Color: -> new MWClassColor(@)
+  MWClassColor: class MWClassColor extends MWClass
     colors: {
       default: [
         'crimson'
@@ -1221,7 +1838,9 @@ window.MWLearn = class MWLearn
       ]
     }
 
-    constructor: ->
+    constructor: (root) ->
+      super root
+
       @colors['difficulty'] = ['blue','limegreen','gold','orange','red']
 
     pick: (colorSet='default', interpolate=false) ->
@@ -1250,8 +1869,11 @@ window.MWLearn = class MWLearn
 
       Raphael.color("rgb(#{r},#{g},#{b})")
 
-  MWExec: class MWExec
-    Sequence: class Sequence
+  Exec: -> new MWClassExec(@)
+  MWClassExec: class MWClassExec extends MWClass
+
+    Sequence: (name, fStep, next, options={}) -> new MWClassExecSequence(@root,name,fStep,next,options)
+    MWClassExecSequence: class MWClassExecSequence extends MWClass
       _name: ''
       _fStep: null
       _fCleanup: null
@@ -1261,29 +1883,58 @@ window.MWLearn = class MWLearn
 
       _fCheck: null
       _timer: null
+      _countdown: false
 
       _tStart: 0
       _tStep: 0
 
-      finished: false
+      _fPre: null
+      pre: null
 
-      constructor: (name, fStep, next, options={}) ->
+      finished: false
+      result: null
+
+      constructor: (root, name, fStep, next, options) ->
         ###
           name: a unique name for the sequence
           fStep: array specifying the function to execute at each step
           next: array of:
-            time: time to move on from the step
+            time: time to move on to the next step
             key: a key that must be down to move on
-            f: a function that takes the sequence and step start times and returns true to move on
+            f: a function that takes the sequence and step start times and
+              returns true to move on
+            ['key'/'mouse', options]: specify input event that must occur
+            ['event', f] specify a function that will register an event that will
+              call the function to move to the next step
+            ['lazy', f] specify a function that will be called after the step is
+              executed, take this object and the current step index as inputs,
+              and returns one of the above
+          options:
+            execute:  true to execute the sequence immediately
+            countdown: true to count down the session timer while executing the
+              sequence
+            mode: time mode ('step', 'sequence', or 'absolute')
+            pre: a function that takes this object as input and returns an
+              object of info to be stored in this object's pre property. the
+              function is executed immediately before the first step.
+            callback: a function to call when the sequence finishes. takes this
+                      object as an input argument
+            cleanup:  array specifying function to call after each step
         ###
+        super root
+
+        @_fPre = options.pre ? null
         options.execute = options.execute ? true
-        @mode = options.mode ? "step" #time mode
-        @callback = options.callback ? null # a function to call when the sequence finishes
-        @_fCleanup = options.cleanup ? null # array specifying function to call after each step
+        @_countdown = options.countdown ? false
+        @mode = options.mode ? "step"
+        @callback = options.callback ? null
+        @_fCleanup = options.cleanup ? null
 
         @_name = name
         @_fStep = fStep
         @_next = next
+
+        @pre = {}
 
         @setSequence()
 
@@ -1298,130 +1949,387 @@ window.MWLearn = class MWLearn
           when "absolute" then t
           else throw "Invalid time mode"
 
-        tExec - _mwlearn.time.Now()
+        tExec - @root.time.Now()
 
       checkNext: ->
         if @_fCheck(@_tStart, @_tStep)
           clearInterval(@_timer)
-          _mwlearn.queue.do(@stepName(@_idx))
+          @getFDoStep(@_idx)()
 
       setSequence: ->
         nStep = @_fStep.length + (if @callback? then 1 else 0)
         for idx in [0..nStep-1]
           fDoStep = ( (obj) -> (->obj.processStep()) )(@)
-          _mwlearn.queue.add @stepName(idx), fDoStep, {do: false}
+          @root.queue.add @stepName(idx), fDoStep, {do: false}
+
+        @result = ({t:{}, output:{}} for [0..@_fStep.length-1])
 
       processStep: ->
-        @_tStep = _mwlearn.time.Now()
+        @_tStep = @root.time.Now()
 
-        @cleanupStep(@_idx-1)
+        if @_idx>0
+          @cleanupStep(@_idx-1)
+        else if @_fPre?
+          @pre = @_fPre(@)
 
         if @_idx==@_fStep.length
-          @finished = true
-          if @callback? then @callback()
+          @finishSequence()
         else
           @executeStep(@_idx)
-          next = @_next[@_idx]
+          @parseNext(@_idx)
           @_idx++
 
-          @parseNext(@_idx, next)
+      executeStep: (idx) ->
+        @result[idx].t.start = @root.time.Now()
+        @result[idx].output.step = if @_fStep[idx]? then @_fStep[idx]() else null
 
-      executeStep: (idx) -> @_fStep[idx]()
-      cleanupStep: (idx) -> if @_fCleanup? and idx>=0 and @_fCleanup[idx]? then @_fCleanup[idx]()
+      cleanupStep: (idx) ->
+        @result[idx].t.end = @root.time.Now()
 
-      parseNext: (idx, next) ->
-        fDoStepNext = ( (obj,i) -> (-> _mwlearn.queue.do(obj.stepName(i))) )(@, idx)
+        doFCleanup = @_fCleanup? and @_fCleanup[idx]?
+        @result[idx].output.cleanup = if doFCleanup then @_fCleanup[idx]() else null
+
+      getFDoStep: (idx) -> ((root,that,i) -> (-> root.queue.do(that.stepName(i))) )(@root,@,idx)
+
+      parseNext: (idx, next=null) ->
+        fDoStepNext = @getFDoStep(idx+1)
+
+        next = next ? @_next[idx]
 
         if !isNaN(parseFloat(next)) #number
           window.setTimeout fDoStepNext, @delayTime(next)
-        else if (typeof next)=='string'
-          @parseNext(['key',{button: next}])
-        else if (typeof next)=='function'
-          fCheckNext = ( (obj) -> (->obj.checkNext()) )(@)
+        else if (typeof next)=='string' #key name
+          @parseNext(idx,['key',{button: next}])
+        else if (typeof next)=='function' #function to check periodically
+          fCheckNext = ( (that) -> (->that.checkNext()) )(@)
           @_fCheck = next
           @_timer = setInterval(fCheckNext,1)
         else if Array.isArray(next) and next.length>=1
           switch next[0]
-            when 'key', 'mouse'
-              options = if next.length>=2 then next[1] else {}
+            when 'key', 'mouse' #input event
+              root = @root
+              fRegister = (f) ->
+                options = if next.length>=2 then next[1] else {}
 
-              options.event = options.event ? 'down'
-              options.button = options.button ? 'any'
-              options.expires = 1
-              options.f = fDoStepNext
+                options.event = options.event ? 'down'
+                options.button = options.button ? 'any'
+                options.expires = 1
 
-              _mwlearn.input.addHandler(next[0],options)
+                if options.f?
+                  fUser = options.f
+                  options.f = -> fUser(); f();
+                else
+                  options.f = f
+
+                root.input.addHandler(next[0],options)
+
+              @parseNext(idx,['event', fRegister])
+            when 'event' #a function that registers an event
+              next[1](fDoStepNext)
+            when 'lazy'
+              that = @
+              @parseNext idx, next[1](that, idx)
             else throw "Invalid next value"
         else
           throw "Invalid next value"
 
+      finishSequence: () ->
+        if @callback? then @callback(@)
+        @finished = true
+
       Execute: ->
-        @_tStart = _mwlearn.time.Now()
+        @_tStart = @root.time.Now()
 
         @finished = false
         @_idx = 0
 
-        _mwlearn.queue.do(@stepName(0))
+        @getFDoStep(0)()
 
-    Show: class Show extends Sequence
+    Show: (name, stim, next, options={}) -> new MWClassExecShow(@root,name,stim,next,options)
+    MWClassExecShow: class MWClassExecShow extends MWClassExecSequence
+      contain: true
+
       _stim: null
-      _stimObj: null
+      _stimStep: null
+      _stimSequence: null
 
       _fixation: false
+      _cleanupStim: null
 
-      constructor: (name, stim, next, options={}) ->
-        options.fstep = options.fstep ? (null for [1..stim.length])
+      constructor: (root, name, stim, next, options) ->
+        ###
+          name: a name for the sequence
+          stim: an array of arrays of:
+            [<name of show class>, <arg1 to show class>, ...]
+            a Stimulus (hidden)
+            a function that takes this object and the current step index and
+              returns an array of the above
+          next: see MWExecute.Sequence, or
+            ['choice', options] (create MWShow.Choice from current stimuli)
+            ['test', options] (create MWShow.Test from current stimuli)
+          options:
+            cleanupStim: the type of stimulus cleanup to perform. one of:
+              'step': cleanup stimuli at the start of the next step
+              'sequence': cleanup stimuli at the end of the sequence
+              'none': don't cleanup stimuli
+            fixation: true to show the fixation dot at each step
+            contain: true to contain stimuli within the screen
+            (see Sequence super class)
+        ###
+        @_cleanupStim = options.cleanupStim ? 'step'
         @_fixation = options.fixation ? false
+        @contain = options.contain ? true
 
         @_stim = stim
-        @_stimObj = []
+        @_stimStep = ([] for [1..stim.length])
+        @_stimSequence = []
 
-        super name, options.fstep, next, options
+        super root, name, (null for [1..stim.length]), next, options
+
+      storeStimulus: (stim, idx) ->
+        @_stimStep[idx].push stim
+        @_stimSequence.push stim
+        stim
 
       executeStep: (idx) ->
-        @_stimObj.push new _mwlearn.show[s[0]](s[1..]...) for s in @_stim[idx]
+        super idx
+
+        stimuli = forceArray(@_stim[idx])
 
         if @_fixation
-          fixObj = _mwlearn.fixation[0]
-          fixArg = _mwlearn.fixation[1]
+          fixObj = @root.fixation[0]
+          fixArg = @root.fixation[1]
+          stimuli.push [fixObj, fixArg...]
 
-          @_stimObj.push new _mwlearn.show[fixObj](fixArg...)
+        @parseStimulus(stim, idx) for stim in stimuli
+
+        @result[idx].t.show = @root.time.Now()
+
+      parseStimulus: (stim, idx) ->
+        if Array.isArray(stim) and stim.length>0 and (typeof stim[0] == 'string')
+          @parseStimulus (@root.show[stim[0]](stim[1..]...)), idx
+        else if stim?
+          wTotal = @root.width()
+          hTotal = @root.height()
+
+          for s in forceArray(stim)
+            if s instanceof @root.show.MWClassShowStimulus
+              @storeStimulus s, idx
+
+              if @contain then s.contain()
+              s.show(true)
+            else if s instanceof Function
+              @parseStimulus s(@, idx), idx
+            else if Array.isArray(s)
+              @parseStimulus s, idx
+            else
+              throw "Invalid stimulus"
+        else
+          null
 
       cleanupStep: (idx) ->
         super idx
-        stim.remove() for stim in @_stimObj
-        @_stimObj = []
 
-  MWQueue: class MWQueue
-    _queue = []
+        #cleanup the stimuli
+        if @_cleanupStim=='step'
+          stim.remove() for stim in @_stimStep[idx]
+        else
+          stim.show(false) for stim in @_stimStep[idx]
 
-    length: -> _queue.length
+        @result[idx].t.remove = @root.time.Now()
+
+      parseNext: (idx, next=null) ->
+        fDoStepNext = @getFDoStep(idx+1)
+
+        next = next ? @_next[idx]
+
+        if Array.isArray(next) and (next[0]=='choice' or next[0]=='test')
+          options = next[1] ? {}
+          fCallback = options.callback ? null
+          options.callback = ((root,that,step_idx) -> (obj,i) ->
+            that.result[step_idx].t.choice = obj._tChoice
+            that.result[step_idx].t.rt = that.result[step_idx].t.choice - that.result[step_idx].t.show
+            that.result[step_idx].choice = i
+            if obj instanceof root.show.MWClassShowTest then that.result[step_idx].correct = obj.correct
+            if fCallback? then fCallback(i)
+            fDoStepNext())(@root,@,idx)
+
+          stim = @root.show[capitalize(next[0])](@_stimStep[idx], options)
+          @storeStimulus stim, idx
+        else
+          super idx, next
+
+      finishSequence: () ->
+        super()
+
+        if @_cleanupStim=='sequence' then stim.remove() for stim in @_stimSequence
+        if @_cleanupStim!='none'
+          @_stimSequence = []
+          @_stimStep = []
+
+  Queue: -> new MWClassQueue(@)
+  MWClassQueue: class MWClassQueue extends MWClass
+    _queue: null
+
+    constructor: (root) ->
+      super root
+
+      @_queue = []
+
+    length: -> @_queue.length
 
     add: (name, f, options={}) ->
       options.do = options.do ? true
-      _queue.push {name:name, f:f, ready:false}
+      @_queue.push {name:name, f:f, ready:false}
 
       if options.do then @do name
 
     do: (name) ->
-      if _queue.length > 0
-        if _queue[0].name==name
-          _queue[0].ready = true
-          _queue.shift().f() while _queue.length>0 and _queue[0].ready
+      if @_queue.length > 0
+        if @_queue[0].name==name
+          @_queue[0].ready = true
+          @_queue.shift().f() while @_queue.length>0 and @_queue[0].ready
         else
-          for i in [0.._queue.length-1]
-            if _queue[i].name==name
-              _queue[i].ready = true
+          for i in [0..@_queue.length-1]
+            if @_queue[i].name==name
+              @_queue[i].ready = true
               break
 
-  MWGame: class MWGame
-    constructor: ->
-      @construct = new MWGameConstruct
-      @assemblage = new MWGameAssemblage
+  Game: -> new MWClassGame(@)
+  MWClassGame: class MWClassGame extends MWClass
+    constructor: (root) ->
+      super root
 
-    MWGameConstruct: class MWGameConstruct
-      constructor: ->
-        @nPart = 100
+      @construct = @Construct()
+      @assemblage = @Assemblage()
+
+    MWClassGameBase: class MWClassGameBase extends MWClass
+      name: ''
+
+      current_trial: null
+      trial_result: null
+
+      nDistractor: 3
+
+      tPrompt: 2000
+      tOperate: 6000
+      tTest: 3000
+      tFeedback: 2000
+
+      _doOperate: true
+
+      constructor: (root, name) ->
+        super root
+
+        @name = name
+
+        @trial_result = []
+
+      trialName: (trial=null) ->
+        trial = trial ? @current_trial
+        "#{@name}trial#{trial}"
+
+      create: (param) -> throw 'not implemented'
+      createDistractor: (target) -> (target.createDistractor({show:false}) for [1..@nDistractor])
+
+      prompt: (target) -> @root.show.Text 'Do something'
+      promptStim: -> ((that) -> (s, idx) -> that.prompt s.pre.target)(@)
+      promptNext: -> @tPrompt
+
+      operate: (target) -> null
+      operateStim: -> ((that) -> (s, idx) -> that.operate s.pre.target)(@)
+      operateNext: -> @tOperate
+
+      test: (target) ->
+        target.correct = true
+        test = forceArray(@createDistractor(target))
+        distractor.correct = false for distractor in test
+        test.push target
+        randomize test
+        test
+      testStim: -> ((that) -> (s, idx) -> that.test s.pre.target)(@)
+      testNext: -> ['test', {timeout: @tTest}]
+
+      feedback: (target, correct, choice) ->
+        xFeedback = target.attr "x"
+        yFeedback = target.attr("y") + target.attr("height")/2 + 36
+        strFeedback = if correct then "Yes!" else if choice? then "No!" else 'Too Slow!'
+        text = @root.show.Text strFeedback,
+          x: xFeedback
+          y: yFeedback
+          "font-size": 36
+        [target, text]
+      feedbackStim: -> ((that) -> (s, idx) -> that.feedback s.pre.target, s.result[idx-1].correct, s.result[idx-1].choice)(@)
+      feedbackNext: -> @tFeedback
+
+      trial: (param={}, options={}) ->
+        ###
+          options:
+            result: a function that takes the trial show object (at the end of
+              the trial) and returns an object recording the results of the
+              trial
+        ###
+        that = @
+        root = @root
+
+        #default returns the result of the penultimate show stimulus (i.e. the
+        #test screen)
+        options.result = options.result ? (shw) -> shw.result[shw.result.length-2]
+        fCallback = (shw) -> that.trial_result.push options.result(shw)
+        options.callback = options.callback ? fCallback
+        options.cleanupStim = options.cleanupStim ? 'sequence'
+        options.countdown = options.countdown ? true
+
+        #increment the trial
+        @current_trial = if @current_trial? then @current_trial+1 else 0
+
+        #pre step to construct the trial target
+        options.pre = options.pre ? (shw) -> {
+          target: that.create param
+        }
+
+        stim = []
+        next = []
+
+        #add the trial start prompt
+        stim.push [['Instructions', "Click to begin #{@name} trial #{@current_trial+1}"]]
+        next.push ['mouse', {
+          f: -> root.el.status.el.timer.go()
+        }]
+
+        #prompt
+        stim.push @promptStim()
+        next.push @promptNext()
+
+        #operate
+        if @_doOperate
+          stim.push @operateStim()
+          next.push @operateNext()
+
+        #test
+        stim.push @testStim()
+        next.push @testNext()
+
+        #feedback
+        stim.push @feedbackStim()
+        next.push @feedbackNext()
+
+        #add the bit to stop the timer
+        fCallback = options.callback
+        fStopTimer = -> root.el.status.el.timer.stop()
+        options.callback = (obj) -> fCallback(obj); fStopTimer();
+
+        #do it now!
+        shw = @root.exec.Show "#{@trialName()}", stim, next, options
+
+      color: (x) -> @root.color.pick()
+
+    Construct: -> new MWClassGameConstruct(@root)
+    MWClassGameConstruct: class MWClassGameConstruct extends MWClassGameBase
+      nPart: 100
+
+      constructor: (root) ->
+        super root, 'construct'
 
       srcPart: (i, position=0) ->
         if i=="all"
@@ -1436,7 +2344,11 @@ window.MWLearn = class MWLearn
 
         [iFirst, iLast]
 
-
+      pickOne: (d, exclude=null) ->
+        loop
+          part = randomInt(@partRange(d)...)
+          break if not exclude? or part!=exclude
+        part
       pick: (n, d) ->
         rng = @partRange(d)
         rngMid = (rng[0] + rng[1])/2
@@ -1463,87 +2375,113 @@ window.MWLearn = class MWLearn
         randomize parts
         parts
 
-
       difficultyColor: (d, dMin=0, dMax=0.4) ->
-        _mwlearn.color.blend('difficulty', (d-dMin)/dMax)
+        @root.color.blend('difficulty', (d-dMin)/dMax)
 
-    MWGameAssemblage: class MWGameAssemblage
+      create: (param={}) ->
+        param.d = param.d ? 0.2
+
+        target = @root.show.ConstructFigure param.d,
+          color: @color()
+          show: false
+      createDistractor: (target) -> target.createDistractors(@nDistractor)
+
+      prompt: (target) -> @root.show.ConstructPrompt(target,{show:false})
+
+    Assemblage: -> new MWClassGameAssemblage(@root)
+    MWClassGameAssemblage: class MWClassGameAssemblage extends MWClassGameBase
+      tPerPromptWord: 300
+      tImagine: 500
+
       _map: null
       _param: null
 
-      constructor: ->
+      _doOperate: false
+
+      constructor: (root) ->
+        super root, 'assemblage'
+
         @_map = {}
         @_param = []
 
         @addPart('square',
           [ ['L',0,1], ['L',1,1], ['L',1,0], ['Z'] ]
           {
-            symmetric: true
+            symmetry: "90"
             inside: true
           }
         )
         @addPart('circle',
           [ ['M',0,0.5], ['C',0,0.5,0,1,0.5,1], ['C',0.5,1,1,1,1,0.5], ['C',1,0.5,1,0,0.5,0], ['C',0.5,0,0,0,0,0.5] ]
           {
-            symmetric: true
+            symmetry: "90"
             inside: true
           }
         )
         @addPart('triangle',
           [ ['M',0,1], ['L',0.5,0], ['L',1,1], ['Z'] ]
           {
+            symmetry: "vertical"
             connects: [1,3]
           }
         )
         @addPart('diamond'
           [ ['M',0.5,0], ['L',0,0.5], ['L',0.5,1], ['L',1,0.5], ['Z'] ]
           {
-            symmetric: true
-          }
-        )
-        @addPart('right triangle',
-          [ ['M',0,1], ['L',1,1], ['L',1,0], ['M',1,0], ['L',0,1] ]
-          {
-            connects: [2,3]
+            symmetry: "90"
           }
         )
         @addPart('line',
           [ ['M',0.5,0], ['L',0.5,1], ['M',1,1] ] #last move just to fill the space
           {
             connects: [1,3]
+            symmetry: "180"
           }
         )
         @addPart('cross'
           [ ['M',0.5,0], ['L',0.5,1], ['M',0,0.5], ['L',1,0.5] ]
           {
-            symmetric: true
+            symmetry: "90"
+          }
+        )
+        ###@addPart('right triangle',
+          [ ['M',0,1], ['L',1,1], ['L',1,0], ['M',1,0], ['L',0,1] ]
+          {
+            connects: [2,3]
           }
         )
         @addPart('T',
           [ ['L',1,0], ['M',0.5,0], ['L',0.5,1] ]
           {
             connects: [1,3]
+            symmetry: "vertical"
           }
         )
         @addPart('D',
           [ ['L',0,1], ['L',0.5,1], ['C',0.5,1,1,1,1,0.5], ['C',1,0.5,1,0,0.5,0], ['Z'] ]
           {
             connects: [0,2]
+            symmetry: "horizontal"
           }
         )
         @addPart('E'
           [ ['M',1,0], ['L',0,0], ['L',0,1], ['L',1,1], ['M',0,0.5], ['L',1,0.5] ]
+          {
+            symmetry: "horizontal"
+          }
         )
-        @addPart('5',
+        @addPart('S',
           [ ['M',1,0], ['L',0,0], ['L',0,0.5], ['L',1,0.5], ['L',1,1], ['L',0,1] ]
           {
             connects: [1,3]
+            symmetry: "180"
           }
         )
         @addPart('B',
           [ ['L',0,1], ['L',0.75,1], ['C',0.75,1,1,1,1,0.75], ['C',1,0.75,1,0.5,0.75,0.5], ['L',0,0.5], ['L',0.75,0.5], ['C',0.75,0.5,1,0.5,1,0.25], ['C',1,0.25,1,0,0.75,0], ['Z'] ]
           {
             connects: [0,1,3]
+            symmetry: "horizontal"
           }
         )
         @addPart('F',
@@ -1557,7 +2495,7 @@ window.MWLearn = class MWLearn
           {
             connects: [1]
           }
-        )
+        )###
 
       param: (part) -> @_param[@_map[part]]
       parts: (iMax=null) -> p.name for p,i in @_param when ((not iMax?) or i<=iMax)
@@ -1566,163 +2504,50 @@ window.MWLearn = class MWLearn
         options.name = name
         options.definition = definition
         options.connects = options.connects ? [0,1,2,3]
-        options.symmetric = options.symmetric ? false
+        options.symmetry = options.symmetry ? 'none'
         options.inside = options.inside ? false
 
         @_map[name] = @_param.push(options) - 1
 
-      findReplacements: (part, iMax=null) ->
-        conn = @param(part).connects
+      create: (param={}) ->
+        param.steps = param.steps ? 1
+        param.imax = param.imax ? null
 
-        possibleParts = []
-        for replacement in @parts(iMax)
-          if part!=replacement
-            goodReplacement = true
-            for c in conn
-              if find(@param(replacement).connects,c).length==0
-                goodReplacement = false
-                break
-            if goodReplacement then possibleParts.push replacement
-        possibleParts
+        target = @root.show.Assemblage #make a new assemblage
+            color: @color()
+            imax: param.imax
+            show: false
 
-      pickReplacement: (part,iMax=null) -> pickFrom(@findReplacements(part,iMax))
+        #add the first part
+        target.addRandom()
 
-      replacePartInSet: (setParam, iMax=null) ->
-        idx = randomInt(0,setParam.length-1)
-        setParam[idx][0] = @pickReplacement(setParam[idx][0],iMax)
-        setParam
+        #add the parts, interleaving with image rotations
+        iStep = 1
+        while iStep < param.steps
+          target.addRandom()
+          iStep++
+          if iStep < param.steps
+            target.rotate randomInt(1,3)
+            iStep++
+        target
 
-      create: (nPart, iMax) ->
-        a = new _mwlearn.show.Assemblage #make a new assemblage
-            color: _mwlearn.color.pick()
+      prompt: (target) ->
+        @root.show.AssemblageInstruction(target,null,{show:false})
+      promptTime: (target, step=null) ->
+        instruct = target._instruction
 
-        a.show false #hide it
-        a.addRandom(nPart, iMax) #add the parts
-        a
-      createDistractor: (target, iMax=null) ->
-        distractor = new _mwlearn.show.Assemblage
-          color: target.attr "color"
+        nWord = wordCount(if step? then instruct[step] else instruct.join(' '))
+        tWord = nWord*@tPerPromptWord
 
-        targetSet = target.getSet()
-        distractorSet = @replacePartInSet targetSet, iMax
-        distractor.addSet distractorSet
-        distractor
-      instruct: (a) ->
-        alert a._instruction.join("\n") #***
-      test: (target, iMax=null) ->
-        target.attr "mousedown", (e,x,y) -> alert "Yes!"
+        nImagine = if step? then 1 else target.numSteps()
+        tImagine = nImagine*@tImagine
 
-        test = (@createDistractor(target, iMax) for [1..3])
-        test.push target
-        randomize test
+        tWord + tImagine
+      promptNext: ->
+        that = @
+        fPromptTimeout = (s) -> that.promptTime s.pre.target
+        fPromptNext = (s,idx) -> ['choice', {timeout: fPromptTimeout(s)}]
+        ['lazy', fPromptNext]
 
-        x = smult([-1,1,1,-1],250)
-        y = smult([-1,-1,1,1],250)
-
-        t.attr("x", x[i]) for t,i in test
-        t.attr("y", y[i]) for t,i in test
-
-        target.show true
-
-window.mwl = new MWLearn "experiment",
-  background: "white"
-
-fTestStimulus = ->
-  el = new mwl.show.Rectangle
-  el.attr "x", -100
-
-fTestConstruct = ->
-  R = 20; C = 30
-  W = 800
-  for i in [0..R-1]
-    for j in [0..C-1]
-      d = 1*( (i*C + j)/(R*C-1) )
-      x = new mwl.show.ConstructFigure d,
-        width: W/R
-        height: W/R
-        x: -W/2*(C/R) + j*W/(R-1)
-        y: -W/2 + i*W/(R-1)
-        #rot: 45
-        color: mwl.game.construct.difficultyColor(d,0,1)
-        #mousedown: (e,x,y,z) -> alert "#{x}, #{y}, #{z}"
-
-fTestAssemblage = ->
-  a = mwl.game.assemblage.create 5, 4
-  mwl.game.assemblage.instruct a
-  mwl.game.assemblage.test a, 4
-
-fTestInput = ->
-  mwl.input.addHandler "mouse", {
-    event: 'down'
-    button: 'left'
-    expires: 0
-    f: (evt) -> document.title = mwl.time.Now() #evt.which
-  }
-
-fTestExecuteSequence = ->
-  f = [
-    -> document.title = 1
-    -> document.title = 2
-    -> document.title = 3
-    -> document.title = 'press the key!'
-    -> document.title = 'click the button!'
-    -> document.title = 'bye'
-  ]
-  n = [
-    (tStart, tStep) -> mwl.time.Now() > tStep + 2000
-    1000
-    1000
-    ['key', {button: 'a'}]
-    ['mouse', {button: 'left'}]
-    1000
-  ]
-  cleanup = [
-    -> alert 'clean up step 1!'
-    null
-    null
-    null
-    null
-  ]
-  exec = new mwl.exec.Sequence 'test_sequence', f, n, {
-    cleanup: cleanup
-    callback: -> document.title = 'done!'
-  }
-  mwl.queue.add "blah", -> alert 'hi'
-
-fTestShowSequence = ->
-  stim = [
-    [
-      ['Text', 'hi there']
-      ['Circle', {color: 'red', y: -100}]
-    ]
-    [
-      ['Text', 'what\'s your name?']
-      ['Circle', {color: 'green', y: -100}]
-    ]
-    [
-      ['Text', 'do you come here often?']
-      ['Circle', {color: 'blue', y: -100}]
-    ]
-    [
-      ['Circle', {color: 'blue', r: 100, y: -100}]
-      ['Text', 'is this text properly centering itself, and what is the nature of the universe?']
-    ]
-  ]
-  next = [
-    1000
-    1000
-    1000
-    ['mouse', {button: 'left'}]
-  ]
-
-  shw = new mwl.exec.Show 'test_show_sequence', stim, next, {
-    callback: -> document.title = 'done!'
-  }
-
-
-#mwl.queue.add "teststimulus", fTestStimulus
-#mwl.queue.add "figure", fTestConstruct
-#mwl.queue.add "figure", fTestAssemblage
-#mwl.queue.add "testinput", fTestInput
-#mwl.queue.add "testexec", fTestExecuteSequence
-mwl.queue.add "testshowsequence", fTestShowSequence
+    Rotate: -> new MWClassGameRotate(@root)
+    MWClassGameRotate: class MWClassGameRotate extends MWClassGameBase
