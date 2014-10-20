@@ -33,11 +33,31 @@ cPathPNG	= cellfun(@(f) PathUnsplit(strDirPNG,PathGetFilePre(f),'png'),cPathSVG,
 		cellfunprogress(@MWL.FixPNG,cPathPNG);
 
 %convert to Raphael
-	strDirJS	= DirAppend(strDirIm,'js');
-	
-	CreateDirPath(strDirJS);
-	
 	raph	= cellfunprogress(@svg2raphael,cPathSVG,'uni',false);
+	nRaph	= numel(raph);
+	
+	if any(cellfun(@numel,raph)>1)
+		error('Some SVG files had more than one path.');
+	end
 
-
-
+	%convert to normalized array form
+		cRaph	= cell(nRaph,1);
+		
+		for kR=1:nRaph
+			strPath	= regexprep(raph{kR}.path,'\\[rnt]','');
+			
+			sPath	= svgpath2struct(strPath,...
+						'allowhv'	, false	, ...
+						'fill'		, true	, ...
+						'normalize'	, true	  ...
+						);
+			
+			cArrPath	= cellfun(@(c,p) sprintf('[%s]',join([{['''' c '''']};num2cell(p)],',')),{sPath.command},{sPath.param},'uni',false);
+			cRaph{kR}	= regexprep(sprintf('[%s]',join(cArrPath,',')),'0\.','.');
+		end
+	
+	%save to a file
+		strPaths	= join(cRaph,10);
+		
+		strPathOut	= PathUnsplit(strDirIm,'raphael','coffee');
+		fput(strPaths,strPathOut);

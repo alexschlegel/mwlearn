@@ -21,6 +21,9 @@ s	= 600;
 			im	= alpha>=128;
 		end
 	end
+%rotate to 45 degrees to maximize box space
+	rp	= regionprops(uint8(im), 'Orientation');
+	im	= imrotate(im, 45-rp.Orientation, 'nearest');
 %crop the figure
 	rp		= regionprops(uint8(im),'Image');
 	im		= any(cat(3,rp.Image),3);
