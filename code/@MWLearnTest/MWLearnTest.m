@@ -73,7 +73,7 @@ classdef MWLearnTest < PTB.Object
             end
                                     
             % options for the PTB.Experiment object
-            cOpt = Opt2Cell(opt);
+            cOpt = opt2cell(opt);
             
             % initialize the experiment
             mwlt.Experiment = PTB.Experiment(cOpt{:});
