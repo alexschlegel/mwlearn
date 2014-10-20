@@ -9,13 +9,13 @@ function [part, fig] = GetImages(mwlt, iParts)
 % Out: part - an image containing the 4 parts.
 %       fig - an image containing the figure constructed from the parts.
 persistent cParts;
-numParts = MWL.Param('ci','numParts');
+partsDir = MWL.Param('ci','partsDir');    
+partsExt  = MWL.Param('ci','partsExt');
+numParts = numel(dir(PathUnsplit(partsDir, '*', partsExt)));
 bgColor = mwlt.Experiment.Color.Get(MWL.Param('ci','color','back'));
 
 % get the part images.
-if isempty(cParts)
-    partsDir = MWL.Param('ci','partsDir');    
-    partsExt  = MWL.Param('ci','partsExt');
+if isempty(cParts)    
     fGetPart = @(n) PathUnsplit(partsDir, ['part_' StringFill(n,3)], partsExt);
     cPathParts = arrayfun(fGetPart, (0:numParts-1)', 'uni', false);
     cParts = cellfun(@(path) imread(path, partsExt), cPathParts, 'uni', false);

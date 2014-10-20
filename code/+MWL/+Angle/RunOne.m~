@@ -62,6 +62,13 @@ mwlt.Experiment.Show.Image(image, [-horzOffset, 0], heightVA/2, ...
 mwlt.Experiment.Show.Image(image, [horzOffset, 0], heightVA/2, ...
     startAngle + conditional(bLeftCorr,degRotIncorr,degRotCorr), 'window','test');
 
-% 
+% PAUSE (fixation crosses)
+hPause = mwlt.Experiment.Window.OpenTexture('pause');
+mwlt.Experiment.Show.Line('black',[-horzOffset, winHVA/12], [-horzOffset/4,-winHVA/12],'window',hSample);
+mwlt.Experiment.Show.Line('black',[-horzOffset/4+winHVA/12,0], [-horzOffset/4-winHVA/12,0],'window',hSample);
+mwlt.Experiment.Show.Line('black',[horzOffset/4, winHVA/12], [ horzOffset/4,-winHVA/12],'window',hSample);
+mwlt.Experiment.Show.Line('black',[horzOffset/4+winHVA/12,0], [horzOffset/4-winHVA/12,0],'window',hSample);
+
+
 end
 

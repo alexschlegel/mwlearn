@@ -50,7 +50,7 @@ sSPx = mwlt.Experiment.Window.va2px(sS);
 [~,sWPx,~,sW] = mwlt.Experiment.Window.Get('main');
 
 %introduce the experiment
-str	= 'In this experiment you will mentally construct figures from their parts.';
+str	= 'In this test you will mentally construct figures from their parts.';
 fig = Figure_Example(parts{1}, figures{1});
 mwlt.Experiment.Show.Instructions(str,'figure',fig);
    mwlt.Experiment.Window.CloseTexture(fig);

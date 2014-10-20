@@ -1,0 +1,53 @@
+function cColor = GetGoodColors
+% MWL.Angle.GetGoodColors
+%
+% Simply returns a cell of colors that will be used for the angle task.
+cColor = {...
+    'black';
+    'blue';
+    'brown';
+    'cantaloupe';
+    'cyan';
+    'darkfuschia';
+    'darkgrape';
+    'darkishdeepskyblue';
+    'darkishfuschia';
+    'darkishgreen';
+    'darkishmagenta';
+    'darkishmarigold';
+    'darkishminty';
+    'darkishorange';
+    'darkishred';
+    'darkmarigold';
+    'darkmint';
+    'darkminty';
+    'darkorange';
+    'darkyellow';
+    'dcyan';
+    'ddeepskyblue';
+    'deepskyblue';
+    'dpurple';
+    'dyellow';
+    'fuschia';
+    'green';
+    'lcantaloupe';
+    'lfuschia';
+    'lgreen';
+    'lightishblue';
+    'lightishcantaloupe';
+    'lightishcyan';
+    'lightishfuschia';
+    'lightishorange';
+    'lightishred';
+    'lightishyellow';
+    'lightorange';
+    'lorange';
+    'lred';
+    'lyellow';
+    'magenta';
+    'marigold';
+    'minty';
+    'orange';
+    'purple';
+    'red';
+    'yellow'};
