@@ -38,13 +38,15 @@
 
     {% endblock body %}
 
-	{% block all_script %}{% compress js %}
-		<script type="text/javascript" src="{% static "mwlearnapp/external/jquery/jquery.js" %}"></script>
-		{# may not need this <script type="text/javascript" src="{% static "main/external/jquery/jquery-ui.js" %}"></script> #}
+	{% block all_script %}
+		{% compress js %}
+			<script type="text/javascript" src="{% static "mwlearnapp/external/jquery/jquery.js" %}"></script>
+			{# may not need this <script type="text/javascript" src="{% static "main/external/jquery/jquery-ui.js" %}"></script> #}
 
-		{# additional js: this is generally what subtemplates should use #}
-		{% block script %}{% endblock script %}
-	{% endcompress js %}{% endblock all_script %}
+			{# additional js: this is generally what subtemplates should use #}
+			{% block script %}{% endblock script %}
+		{% endcompress js %}
+	{% endblock all_script %}
 
 	{% if 'dbg' in request.GET %}
 		<pre style="background: white">{% debug %}</pre>
