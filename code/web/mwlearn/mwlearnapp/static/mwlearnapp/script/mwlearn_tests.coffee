@@ -1,5 +1,5 @@
 window.mwl = new MWLearn
-  practice_minutes: 1
+  #practice_minutes: 1
 
 fTestNaturalDirection = ->
   fTest = (a) -> "#{a}: #{naturalDirection(a)}"
@@ -234,7 +234,8 @@ fTestAssemblageTrial = ->
   mwl.game.assemblage.trial({steps:n}) for n in [1..100]
 
 fTestRotateTrial = ->
-  mwl.game.rotate.trial({precision:p}) for p in [90..1] by -5
+  for p in [90,80,70,60,50,40,30,20,10,9,8,7,6,5,4,3,2,1]
+    mwl.game.rotate.trial({precision:p})
 
 #mwl.queue.add "testnaturaldirection", fTestNaturalDirection
 #mwl.queue.add "teststimulus", fTestStimulus
@@ -243,7 +244,7 @@ fTestRotateTrial = ->
 #mwl.queue.add "testconstruct", fTestConstruct
 #mwl.queue.add "testconstructprompt", fTestConstructPrompt
 #mwl.queue.add "testassemblage", fTestAssemblage
-mwl.queue.add "testshowrotate", fTestShowRotate
+#mwl.queue.add "testshowrotate", fTestShowRotate
 #***mwl.queue.add "testscaling", fTestScaling
 #mwl.queue.add "testremove", fTestRemove
 #mwl.queue.add "testinput", fTestInput
@@ -253,5 +254,4 @@ mwl.queue.add "testshowrotate", fTestShowRotate
 #mwl.queue.add "testshowsequence", fTestShowSequence
 #mwl.queue.add "testconstructtrial", fTestConstructTrial
 #mwl.queue.add "testassemblagetrial", fTestAssemblageTrial
-#mwl.queue.add "testrotatetrial", fTestRotateTrial
-
+mwl.queue.add "testrotatetrial", fTestRotateTrial
