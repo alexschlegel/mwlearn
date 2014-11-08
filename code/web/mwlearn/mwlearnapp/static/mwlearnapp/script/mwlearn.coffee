@@ -1,3 +1,7 @@
+window.doDebug = ->
+  #alert obj2str(mwl.data._local_datastore)
+  mwl.data.failSafe()
+
 window.obj2str = (obj, indent=0) ->
   if obj? and (typeof obj=='object')
     pre = (if indent>0 then "\n" else "")
@@ -10,6 +14,14 @@ window.obj2str = (obj, indent=0) ->
     pre+str.join("\n")
   else
     obj
+objPath = (obj,path...) ->
+  x = obj
+  for el in path
+    if x?
+      x = x[el]
+    else
+      break
+  x
 window.getClass = (obj) -> obj.constructor.name
 zpad = (x,n,chr='0') -> x=chr + x while (''+x).length < n; x
 extend = (obj, prop) -> obj[key]=val for key, val of prop; obj
@@ -136,12 +148,40 @@ msPerT = (unit) ->
       85800000
     else
       throw 'Invalid unit'
-convertTime = (t,unitFrom,unitTo) -> t*msPerT(unitFrom)/msPerT(unitTo)
+window.convertTime = (t,unitFrom,unitTo) -> t*msPerT(unitFrom)/msPerT(unitTo)
+window.time2str = (t,showms=false) ->
+  hours = Math.floor(convertTime(t,'ms','hour'))
+  t -= convertTime(hours,'hour','ms')
+
+  minutes = Math.floor(convertTime(t,'ms','minute'))
+  t -= convertTime(minutes,'minute','ms')
+
+  seconds = Math.floor(convertTime(t,'ms','second'))
+  t -= convertTime(seconds,'second','ms')
+
+  strHours = if hours>0 then "#{zpad(hours,2)}:" else ''
+  strMinutes = "#{zpad(minutes,2)}:"
+  strSeconds = zpad(seconds,2)
+  strMS = if showms then ".#{t}" else ''
+  "#{strHours}#{strMinutes}#{strSeconds}#{strMS}"
+window.squareGrid = (n) ->
+  #pick a row/column size to optimize holding n things while staying squarish
+  rc = [1..Math.max(1,Math.floor(Math.sqrt(n)))]
+  cr = (Math.max(1,Math.ceil(n/x)) for x in rc)
+  score = (1/((1+rc[i]*cr[i]-n)*Math.pow(1+cr[i]-rc[i],3)) for i in [0..rc.length-1])
+  iMax = 0
+  iMax = i for i in [1..score.length-1] when score[i]>score[iMax]
+  row = Math.min(rc[iMax], cr[iMax])
+  col = Math.max(rc[iMax], cr[iMax])
+  [row, col]
 
 
 window.MWLearn = class MWLearn
   base: null
 
+  user: 'bob'
+
+  type: null
   container: null
   el: null
   im: null
@@ -149,8 +189,12 @@ window.MWLearn = class MWLearn
   status: null
   background: null
 
+  debug: false
+
   _background: null
   _isbase: false
+
+  _ready: false
 
   constructor: (options={}) ->
     if options.base?
@@ -159,93 +203,147 @@ window.MWLearn = class MWLearn
       @_isbase = true
       @base = @
 
-    options.type = options.type ? 'main'
+    @type = options.type ? 'experiment'
 
-    defaults = switch options.type
-      when "main"
+    defaults = {
+      debug: false
+      container: @type
+      background: 'white'
+      background_stroke: 'none'
+      images: []
+      loadimages: false
+      fixation: ["Circle", [{color:"red", r:5}]]
+      run_session: false
+    }
+    defaults = merge defaults, switch @type
+      when 'experiment'
         {
           loadimages: true
-          background: 'white'
-          container: 'experiment'
+          run_session: true
         }
-      when "status"
+      when 'status'
+        {}
+      when 'history'
+        {}
+      when 'popup'
         {
-          loadimages: false
-          background: 'white'
-          container: 'status'
+          background_stroke: 'black'
         }
       else
-        {
-          loadimages: false
-          background: 'white'
-          container: document.body
-        }
+        {}
 
-    @container = options.container ? defaults.container
-    options.images = options.images ? []
-    options.loadimages = options.loadimages ? defaults.loadimages
-    @background = options.background ? defaults.background
-    @fixation = options.fixation ? ["Circle", [{color:"red", r:5}]]
+    options = merge defaults, options
+
+    @debug = options.debug
+    @container = options.container
+    @background = options.background
 
     @im = {}
 
     @paper = Raphael @container
 
+    @action = @Action()
     @show = @Show()
     @input = @Input()
     @time = @Time()
     @color = @Color()
     @exec = @Exec()
     @queue = @Queue()
-    @game = @Game()
-    if @_isbase then @data = @Data()
 
     @_background = @show.Rectangle
       color: @background
       width: @width()
       height: @height()
-
-    if options.loadimages
-      imConstruct = @game.construct.srcPart("all")
-      images = options.images.concat imConstruct
-      if images.length then @LoadImages images
+      stroke: options.background_stroke
+      "stroke-width": 16
 
     @el = {}
-
     timerName = 'session'
-    switch options.type
-      when 'main'
-        @data = @Data()
+    switch @type
+      when 'experiment'
         @el.status = new MWLearn
           base: @
           type: 'status'
           practice_time: options.practice_time
+          debug: @debug
+        @el.history = new MWLearn
+          base: @
+          type: 'history'
+          debug: @debug
+        @el.popup = new MWLearn
+          base: @
+          type: 'popup'
+          debug: @debug
       when 'status'
         @el.timer = @show.Timer options.practice_time ? convertTime(25,'minute','ms'),
           name: timerName
+          initialize: false
           color: 'gray'
+          l: 10
           t: 10
 
-        @el.timer.contain()
+        @el.actions = @show.ItemList {},
+          l: 10
+          t: @el.timer.attr("t") + @el.timer.attr("height") + 10
+        @el.actions.contain()
+      when 'history'
+        @el.record = @show.TrialRecord
+          width: @width()-10
+          height: @height()-10
+      when 'popup'
+        @visible false
       else
         null
+
+    @data = @Data()
+    @game = @Game()
+    @session = @Session()
+
+    if @_isbase then @el.status.el.timer.initialize()
+
+    if options.loadimages
+      imConstruct = @game.construct.srcPart("all")
+      images = options.images.concat imConstruct
+      if images.length then @LoadImages(images)
+
+    if options.run_session then @queue.add 'session_run', @session.run
 
   width: -> @paper.width
   height: -> @paper.height
   clear: -> @paper.clear()
 
+  ready: (state=null) ->
+    if state?
+      @_ready = state
+      if @type=='experiment'
+        @el.status.ready(state)
+        @el.history.ready(state)
+        @el.popup.ready(state)
+    @_ready
+
   LoadImages: (images) ->
+    @action.start 'loadimages', 'loading images'
+
     nLoaded = 0
     p = @show.Progress "Loading Images", steps:20
-    f = -> p.update ++nLoaded/images.length
+    fUpdate = => p.update ++nLoaded/images.length
 
-    for i in [0..images.length-1]
-      qName = "image_#{images[i]}"
+    for idx in [0..images.length-1]
+      f = if idx==images.length-1 then (=> fUpdate(); @action.stop('loadimages')) else fUpdate
+
+      qName = "image_#{images[idx]}"
       @queue.add qName, f, {do:false}
-      @im[images[i]] = new Image()
-      @im[images[i]].src = images[i]
-      @im[images[i]].onload = ((name) => => @queue.do name)(qName)
+      @im[images[idx]] = new Image()
+      @im[images[idx]].src = images[idx]
+      @im[images[idx]].onload = ((name) => => @queue.do name)(qName)
 
+  visible: (state) ->
+    elements = if @type=='popup'
+      ["\##{@container}", "\##{@container}_dim"]
+    else
+      ["\##{@container}"]
+
+    (if state then $(el).show() else $(el).hide()) for el in elements
 
   MWClass: class MWClass
     root: null
@@ -254,6 +352,90 @@ window.MWLearn = class MWLearn
     constructor: (root) ->
       @root = root
       @base = root.base
+
+  Action: -> new MWClassAction(@)
+  MWClassAction: class MWClassAction extends MWClass
+    constructor: (root) ->
+      super root
+
+    actions: -> objPath(@,'root','el','status','el','actions')
+
+    start: (name, action) -> if @actions()? then @actions().add name, action
+
+    stop: (name) -> if @actions()? then @actions().remove name
+
+    dialog: (prompt, options={}) ->
+      ###prompt: for 'info' type, a function that takes an mwl object and
+        displays something. for 'yesno' type, the string to prompt.###
+      popup = @base.el.popup
+      popup.visible true
+
+      options.type = options.type ? 'info'
+      options.callback = options.callback ? null
+
+      ffCallback  = ((stm) => (response) =>
+          s.remove() for s in stim when s.exists
+          popup.visible false
+          if options.callback? then options.callback(response)
+        )
+
+      switch options.type
+        when 'info'
+          stim = forceArray(prompt(popup))
+
+          stim.push(popup.show.X
+              href: 'javascript:void(0)'
+              mouseup: => ffCallback(stim)(null)
+              l: 10
+              t: 10
+            )
+        when 'yesno'
+          stim = [popup.show.YesNo prompt,
+            callback: (responseYes) => ffCallback(stim)(responseYes)
+          ]
+        when 'ok'
+          stim = [popup.show.Ok prompt,
+            callback: () => ffCallback(stim)(null)
+          ]
+        else
+          throw 'Invalid dialog type.'
+
+    help: -> @dialog ((m) ->
+      fontSize = 24
+
+      l1 = m.show.Text 'For help, email Alex at:',
+        "text-anchor": 'middle'
+        "font-size": fontSize
+      l2 = m.show.Text 'schlegel@gmail.com',
+        "text-anchor": 'middle'
+        href: 'mailto:schlegel@gmail.com?subject=MWLearn Help!'
+        target: 'blank'
+        color: 'blue'
+        t: l1.attr('t')+l1.attr('height')
+        "font-size": fontSize
+      l3 = m.show.Text '\nor call:\n424–242–4342',
+        "text-anchor": 'middle'
+        t: l2.attr('t')+l2.attr('height')
+        "font-size": fontSize
+      cs = m.show.CompoundStimulus [l1,l2,l3],
+        y: 0)
+
+
+    logoutConfirm: ->
+      t = @base.session.remaining()
+      prompt = if t>0
+        "You still have #{time2str(t)} remaining in your session.\nLogout?"
+      else
+        'Logout?'
+
+      @dialog prompt,
+        type: 'yesno'
+        callback: (responseYes) => if responseYes then @logout()
+
+    logout: ->
+      @root.queue.clear()
+      @root.data.save()
+      @root.queue.add 'logout', (=> window.location = '/logout')
 
   Show: -> new MWClassShow(@)
   MWClassShow: class MWClassShow extends MWClass
@@ -280,6 +462,9 @@ window.MWLearn = class MWLearn
 
       _show_state: true
       _mousedown: null
+      _mouseup: null
+      _mouseover: null
+      _mouseout: null
 
       constructor: (root, options, addDefaults) ->
         super root
@@ -289,6 +474,7 @@ window.MWLearn = class MWLearn
         options = @parseOptions options, {}, addDefaults
 
         @auto_scale = options.auto_scale ? 1
+
 
         @attr(name, value) for name, value of options
 
@@ -388,12 +574,12 @@ window.MWLearn = class MWLearn
               @attr lt, value - @attr(wh)/2
             else
               ret = @attr(lt) + @attr(wh)/2
-          when "mousedown"
+          when "mousedown", "mouseup", "mouseover", "mouseout"
             if value?
-              @_mousedown = value
-              @element.mousedown(value)
+              @["_#{name}"] = value
+              @element[name](value)
             else
-              ret = @_mousedown
+              ret = @["_#{name}"]
           when "box"
             w = @attr "width"
             h = @attr "height"
@@ -484,6 +670,9 @@ window.MWLearn = class MWLearn
       remove: -> if @element? then @element.remove(); @element = null
 
       mousedown: (f) -> @attr "mousedown", f
+      mouseup: (f) -> @attr "mouseup", f
+      mouseover: (f) -> @attr "mouseover", f
+      mouseout: (f) -> @attr "mouseout", f
 
       show: (state=null) -> @attr "show", state
 
@@ -494,22 +683,24 @@ window.MWLearn = class MWLearn
       _defaultElement: 0
 
       _background: null
+      _backgroundOffset: 0
 
       constructor: (root, elements, options) ->
         options.background = options.background ? null
+        @_backgroundOffset = options.background_offset ? 1
 
         @element = copyarray (if elements instanceof MWClassShowCompoundStimulus then elements.element else elements)
+
+        if options.background?
+          if options.background==true then options.background = root.background
+          @_background = root.show.Rectangle
+            color: options.background
+
         super root, options, false
 
         if options.background?
-          if options.background==true then options.background = @root.background
-
-          @_background = @root.show.Rectangle
-            color: options.background
-
           if @element.length>0 then @_background.element.insertBefore @element[0].element
-
-          @updateBackground(["width","height","x", "y", "show","mousedown"])
+          @updateBackground(['width','height','x', 'y', 'show','mousedown','mouseup','mouseover','mouseout'])
 
       attr: (name, value) ->
         switch name
@@ -519,18 +710,20 @@ window.MWLearn = class MWLearn
             n = @element.length
             if n==0
               sCur = 0
+              pMid = 0
             else
               sAll = (el.attr(name) for el in @element)
               pAll = (el.attr(xy) for el in @element)
               pLow = Math.min (pAll[i] - sAll[i]/2 for i in [0..n-1])...
               pHigh = Math.max (pAll[i] + sAll[i]/2 for i in [0..n-1])...
+              pMid = (pLow+pHigh)/2
               sCur = pHigh - pLow
 
             if value?
               fSize = value/sCur
               if n>0
                 @element[i].attr(name, fSize*sAll[i]) for i in [0..n-1]
-                @element[i].attr(xy, fSize*pAll[i]) for i in [0..n-1]
+                @element[i].attr(xy, fSize*(pAll[i]-pMid)+pMid) for i in [0..n-1]
 
                 @updateBackground [name, xy]
             else
@@ -565,10 +758,11 @@ window.MWLearn = class MWLearn
               @_background.attr "mousedown", ffEvent(@_background)
           else
             if value?
+
               el.attr(name, value) for el in @element
 
               switch name
-                when "show", "mousedown"
+                when 'show', 'mousedown', 'mouseup', 'mouseover', 'mouseout'
                   @updateBackground(name)
                 else
                   #nothing
@@ -603,6 +797,7 @@ window.MWLearn = class MWLearn
         else
           if removeElement then (el.remove() for el in @element)
           @element = []
+        if @_background? then @_background.remove()
       exists: -> @element.length > 0
 
       addElement: (el) ->
@@ -618,50 +813,217 @@ window.MWLearn = class MWLearn
       updateBackground: (param) ->
         if @_background?
           for p in forceArray(param)
-            @_background.attr(p,@attr(p))
+            switch p
+              when 'width', 'height'
+                @_background.attr(p,Math.max(0,@attr(p)-2*@_backgroundOffset))
+              when 'box'
+                @updateBackground(['width','height'])
+              when 'l', 't'
+                @_background.attr(p,@attr(p)+@_backgroundOffset)
+              else
+                @_background.attr(p,@attr(p))
+
+    StimulusGrid: (elements, options={}) -> new MWClassShowStimulusGrid(@root,elements,options)
+    MWClassShowStimulusGrid: class MWClassShowStimulusGrid extends MWClassShowCompoundStimulus
+      padding: null
+
+      _attr: null
+
+      constructor: (root, elements, options) ->
+        options.width = options.width ? root.width()
+        options.height = options.height ? root.height()
+        @padding = options.padding ? 8
+
+        @_attr = {
+          width: options.width
+          height: options.height
+        }
+
+        super root, elements, options
+
+      attr: (name, value) ->
+        switch name
+          when 'width', 'height'
+            if value?
+              @_attr[name] = value
+              @updatePositions()
+            else
+              ret = @_attr[name]
+          else
+            super name, value
+
+        if value? then @ else ret
+
+      addElement: (el) -> super el; @updatePositions()
+      removeElement: (el) -> super el; @updatePositions()
+
+      updatePositions: (w=null, h=null) ->
+        n = @element.length
+
+        [rows,cols] = squareGrid(n)
+
+        w = w ? @attr 'width'
+        h = h ? @attr 'height'
+
+        wMax = w - (cols-1)*@padding
+        hMax = h - (rows-1)*@padding
+
+        wPer = wMax/cols
+        hPer = hMax/rows
+        #sPer = Math.min(wPer, hPer)
+
+        wFinal = wPer*cols + @padding*(cols-1)
+        hFinal = hPer*rows + @padding*(rows-1)
+
+        for r in [0..rows-1]
+          for c in [0..cols-1]
+            idx = cols*r + c
+
+            if idx<n
+              x = -(wFinal-wPer)/2 + c*(wPer+@padding)
+              y = -(hFinal-hPer)/2 + r*(hPer+@padding)
+
+              @element[idx].attr 'box', [wPer, hPer]
+              @element[idx].attr 'x', x
+              @element[idx].attr 'y', y
 
     Choice: (elements, options={}) -> new MWClassShowChoice(@root,elements,options)
     MWClassShowChoice: class MWClassShowChoice extends MWClassShowCompoundStimulus
       choiceMade: false
       choice: null
       callback: null
+      callback_delay: null
 
       timeout: null
       _tStart: 0
       _tChoice: 0
 
+      _choiceInclude: null
+      _instruction: null
+      _padx: null
+      _pady: null
+      _autoposition: false
+      _autosize: false
+      _choiceLocation: null
+
       constructor: (root, elements, options) ->
         ###
           elements: an array of Stimulus objects
           options:
+            instruct: the instruction to give
+            autoposition: true to autoposition the elements
+            autosize: true to autosize the choices
+            choice_location: location of the choices (for autoposition). either
+                             'middle' or 'bottom'
             choice_include: an array of indices of Stimulus objects to include
                             as choices
             callback: a function that takes this object and the chosen index as
                       inputs
+            callback_delay: the delay, in milliseconds, before calling the
+                            callback
             timeout: number of milliseconds before the choice times out
+            pad: the padding in between each choice as a percentage of the total
+                 canvas size
+            padx: pad specifically for horizontal padding
+            pady: pad specifically for vertical padding
         ###
         super root, elements, options
 
-        options.choice_include = options.choice_include ? [0..@element.length-1]
+        options.instruct = options.instruct ? "Choose one."
+        @_autoposition = options.autoposition ? true
+        @_autosize = options.autosize ? true
+        @_choiceLocation = options.choice_location ? 'middle'
+        options.pad = options.pad ? null
+        @_padx = options.padx ? (options.pad ? 5)
+        @_pady = options.pady ? (options.pad ? 10)
+
         @callback = options.callback ? null
+        @callback_delay = options.callback_delay ? 0
         @timeout = options.timeout ? null
 
+        options.choice_include = options.choice_include ? [0..@element.length-1]
+        @_choiceInclude = (@element[idx] for idx in options.choice_include)
 
-        for idx in options.choice_include
+        for idx in [0..@_choiceInclude.length-1]
           fDown = ((i) => (e,x,y) => @choiceEvent(i))(idx)
-          @element[idx].mousedown fDown
+          @_choiceInclude[idx].mousedown fDown
+
+        #add the instructions
+        if options.instruct!=false
+          @_instruction = root.show.Instructions options.instruct
+          @element.push @_instruction
+
+        @autoPosition()
 
         @_tStart = @root.time.Now()
 
         if @timeout? then window.setTimeout (=> @choiceEvent(null)), @timeout
+
+      autoPosition: ->
+        hInstruct = if @_instruction? then @_instruction.attr "height" else 0
+
+        #get the maximum final element dimensions
+        nEl = @_choiceInclude.length
+
+        wTotal = @root.width()
+        hTotal = @root.height()
+        padWPx = wTotal*@_padx/100
+        padHPx = hTotal*@_pady/100
+
+        wFinalMax = Math.max(10,(wTotal - (nEl+1)*padWPx)/nEl)
+        hFinalMax = Math.max(10,2*(hTotal/2 - hInstruct - padHPx))
+
+        #maximum current dimensions
+        elW = (el.attr "width" for el in @_choiceInclude)
+        elH = (el.attr "height" for el in @_choiceInclude)
+        wMax = Math.max(elW...)
+        hMax = Math.max(elH...)
+
+        #scale the elements
+        if @_autosize
+          #target scale
+          wScale = wFinalMax/wMax
+          hScale = hFinalMax/hMax
+          scale = Math.min(wScale,hScale)
+
+          for el in @_choiceInclude
+            el.attr "box", [scale*el.attr("width"), scale*el.attr("height")]
+
+          elW = (el.attr "width" for el in @_choiceInclude)
+          elH = (el.attr "height" for el in @_choiceInclude)
+          wMax = Math.max(elW...)
+          hMax = Math.max(elH...)
+
+
+        #line up the choices
+        if @_autoposition
+          yChoice = switch @_choiceLocation
+            when 'middle' then 0
+            when 'bottom' then (hTotal-hMax)/2-padHPx
+            else throw 'Invalid choice location'
+
+          wTotal = sum(elW) + padWPx*(nEl-1) - elW[0]/2 - elW[-1..]/2
+          xCur = -wTotal/2
+          for el,idx in @_choiceInclude
+            el.attr "x", xCur
+            el.attr "y", yChoice
+            xCur += elW[idx] + padWPx
+
+        #position the instructions
+        if @_instruction?
+          yInstruct = switch @_choiceLocation
+            when 'middle' then hMax/2+padHPx
+            when 'bottom' then 0
+            else throw 'Invalid choice location'
+
+          @_instruction.attr "y", yInstruct
 
       choiceEvent: (idx) ->
         if not @choiceMade
           @_tChoice = @root.time.Now()
           @choiceMade = true
           @choice = idx
-          that = @
-          if @callback? then @callback(that,idx)
+          if @callback? then window.setTimeout (=> @callback(@,idx)), @callback_delay
 
     Test: (elements, options={}) -> new MWClassShowTest(@root,elements,options)
     MWClassShowTest: class MWClassShowTest extends MWClassShowChoice
@@ -671,84 +1033,64 @@ window.MWLearn = class MWLearn
         ###
           elements: an array of Stimulus objects
           options:
-            instruct: the instruction to give
-            choice_include: an array of indices of Stimulus objects to include
-                            as choices
             correct: the index of the correct choice / array of indices. if this
                      is unspecified, then each Stimulus object should have a
                      boolean property named "correct" the specifies whether the
                      Stimulus is a correct choice.
-            pad: the padding in between each choice as a percentage of the total
-                 canvas size
         ###
         @root = root
 
-        options.instruct = options.instruct ? "Choose one."
-        options.choice_include = forceArray(options.choice_include ? [0..elements.length])
         options.correct = forceArray(options.correct ? null)
-        options.pad = options.pad ? 5
+
+        super root, elements, options
 
         #record which choices are correct
-        if options.correct? then (elements[i]=options.correct[i] for i in [0..elements.length-1])
-
-        #create the instructions
-        instruct = root.show.Instructions options.instruct
-        hInstruct = instruct.attr "height"
-
-        #line up the choices and make them fill the screen
-
-        #get the maximum final element dimensions
-        nEl = elements.length
-
-        wTotal = root.width()
-        hTotal = root.height()
-        padWPx = wTotal*options.pad/100
-        padHPx = hTotal*options.pad/100
-
-        wFinalMax = Math.max(10,(wTotal - (nEl+1)*padWPx)/nEl)
-        hFinalMax = Math.max(10,2*(hTotal/2 - hInstruct - padHPx))
-
-        #maximum current dimensions
-        elW = (el.attr "width" for el in elements)
-        elH = (el.attr "height" for el in elements)
-
-        wMax = Math.max(elW...)
-        hMax = Math.max(elH...)
-
-        #target scale
-        wScale = wFinalMax/wMax
-        hScale = hFinalMax/hMax
-        scale = Math.min(wScale,hScale)
-
-        #scale the elements
-        for el in elements
-          el.attr "box", [scale*el.attr("width"), scale*el.attr("height")]
-
-        #line up the choices
-        elW = (el.attr "width" for el in elements)
-        elH = (el.attr "height" for el in elements)
-        hMax = Math.max(elH...)
-
-        wTotal = sum(elW) + padWPx*(nEl-1) - elW[0]/2 - elW[-1..]/2
-        xCur = -wTotal/2
-        for el,idx in elements
-          el.attr "x", xCur
-          el.attr "y", 0
-          xCur += elW[idx] + padWPx
-
-        #position the instructions
-        instruct.attr "y", hMax/2+padHPx
-
-        #add the instructions to the elements
-        elements = copyarray(elements)
-        elements.push instruct
-
-        options = remove options, ['pad']
-        super root, elements, options
+        if options.correct?
+          el.correct=false for el in @element
+          @element[idx].correct=true for idx in options.correct
 
       choiceEvent: (idx) ->
         @correct = if idx? then @element[idx].correct else false
         super idx
+
+    Dialog: (prompt,choices,options={}) -> new MWClassShowDialog(@root,prompt,choices,options)
+    MWClassShowDialog: class MWClassShowDialog extends MWClassShowChoice
+      _userCallback: null
+
+      constructor: (root, prompt, choices, options) ->
+        options.autosize = options.autosize ? false
+        options['font-size'] = options['font-size'] ? 48
+
+        choice = []
+        for ch in choices
+          choice.push root.show.Link 'javascript:void(0)', ch,
+            'font-size': options['font-size']
+
+        options.instruct = prompt
+        options.choice_location = options.choice_location ? 'bottom'
+
+        @_userCallback = options.callback
+        options.callback = (choice,idx) =>
+          choice.remove()
+          if @_userCallback? then @runUserCallback(idx)
+
+        super root, choice, options
+
+      runUserCallback: (idx) -> @_userCallback(idx)
+
+    YesNo: (prompt,options={}) -> new MWClassShowYesNo(@root,prompt,options)
+    MWClassShowYesNo: class MWClassShowYesNo extends MWClassShowDialog
+      constructor: (root,prompt,options) ->
+        super root, prompt, ['YES','NO'], options
+
+      runUserCallback: (idx) -> @_userCallback(idx==0)
+
+    Ok: (prompt,options={}) -> new MWClassShowOk(@root,prompt,options)
+    MWClassShowOk: class MWClassShowOk extends MWClassShowDialog
+      constructor: (root,prompt,options) ->
+        super root, prompt, ['OK'], options
+
+      runUserCallback: (idx) -> @_userCallback()
 
     Rectangle: (options={}) -> new MWClassShowRectangle(@root,options)
     MWClassShowRectangle: class MWClassShowRectangle extends MWClassShowStimulus
@@ -756,6 +1098,7 @@ window.MWLearn = class MWLearn
         @root = root
 
         options = @parseOptions options
+        options.stroke = options.stroke ? "none"
 
         l = @x2l(options.x, options.width)
         t = @y2t(options.y, options.height)
@@ -766,7 +1109,6 @@ window.MWLearn = class MWLearn
         options = remove options, ['width', 'height', 'x', 'y']
 
         super root, options, false
-        @element.attr "stroke", "none"
 
     Square: (options={}) -> new MWClassShowSquare(@root,options)
     MWClassShowSquare: class MWClassShowSquare extends MWClassShowRectangle
@@ -848,6 +1190,16 @@ window.MWLearn = class MWLearn
 
       attr: (name, value) ->
         switch name
+          when "l"
+            ta = @attr "text-anchor"
+            switch ta
+              when "middle"
+                if value?
+                  super(name, value + @attr('width')/2)
+                else
+                  ret = super(name) - @attr('width')/2
+              else
+                ret = super name, value
           when "t"
             if value?
               tActual = Math.min(@root.height()-@attr("height")/2,value+@attr("height")/2)
@@ -898,6 +1250,134 @@ window.MWLearn = class MWLearn
 
         if value? then @ else ret
 
+    Instructions: (text, options={}) -> new MWClassShowInstructions(@root, text, options)
+    MWClassShowInstructions: class MWClassShowInstructions extends MWClassShowText
+      constructor: (root, text, options) ->
+        @root = root
+
+        options = @parseOptions options, {
+          "font-family": "Arial"
+          "text-anchor": 'middle'
+          "font-size": 36
+        }
+
+        super root, text, options
+
+    Link: (url, text, options={}) -> new MWClassShowLink(@root,url,text,options)
+    MWClassShowLink: class MWClassShowLink extends MWClassShowText
+      color: null
+      colorHover: null
+
+      constructor: (root, url, text, options) ->
+        options.href = url
+        @color = options.color = options.color ? 'blue'
+        @colorHover = options.color_hover ? 'deepskyblue'
+        options.mouseover = => @attr 'color', @colorHover
+        options.mouseout = => @attr 'color', @color
+
+        super root, text, options
+
+    Timer: (tTotal, options={}) -> new MWClassShowTimer(@root, tTotal, options)
+    MWClassShowTimer: class MWClassShowTimer extends MWClassShowText
+      tTotal: 0
+      tTimer: null
+      tGo: null
+
+      name: null
+
+      showms: false
+      prefix: null
+      suffix: null
+
+      _initialized: false
+      _intervalID: null
+
+      _setTimer: (t) ->
+        @tTimer.set t
+        @render()
+
+      constructor: (root, tTotal, options) ->
+        options.initialize = options.initialize ? true
+
+        @tTotal = tTotal
+        @name = options.name ? 'timer'
+        @showms = options.showms ? false
+        @prefix = options.prefix ? null
+        @suffix = options.suffix ? 'remaining'
+        @tUpdate = options.update_interval ? (if @showms then 10 else 250)
+
+        super root, '', options
+
+        if options.initialize then @initialize()
+
+
+      initialize: ->
+        if not @_initialized
+          @tTimer = @base.data.Variable "#{@name}_remaining", @tTotal,
+            timeout: msPerT('dayminus10minutes')
+
+          @_initialized = true
+
+        @render()
+
+      remaining: ->
+        if @_initialized
+          Math.max(0,if @tGo? then (@tTimer.get()-(@root.time.Now()-@tGo)) else @tTimer.get())
+        else
+          0
+
+      string: ->
+        strTime = time2str(@remaining(),@showms)
+
+        prefix = if @prefix? then "#{@prefix}: " else ''
+        suffix = if @suffix? then " #{@suffix}" else ''
+        "#{prefix}#{strTime}#{suffix}"
+
+      render: -> @attr "text", @string()
+
+      update: ->
+        if @remaining()<=0 then @stop()
+        @render()
+
+      go: ->
+        @tGo = @root.time.Now()
+        @_intervalID = window.setInterval (=> @update()), @tUpdate
+
+      stop: ->
+        if @_intervalID? then clearInterval(@_intervalID)
+        tRemain = @remaining()
+        @tGo = null
+        @_setTimer(tRemain)
+
+    ItemList: (items={}, options={}) -> new MWClassShowItemList(@root, items, options)
+    MWClassShowItemList: class MWClassShowItemList extends MWClassShowText
+      _items: null
+
+      constructor: (root, items, options) ->
+        options['font-size'] = options['font-size'] ? 12
+
+        super root, '', options
+
+        @set items
+
+      set: (items) ->
+        @_items = items
+        @render()
+
+      add: (key, content) ->
+        @_items[key] = content
+        @render()
+
+      remove: (key) ->
+        delete @_items[key]
+        @render()
+
+      render: ->
+        content = (val for key,val of @_items)
+        t = @attr 't'
+        @attr 'text', content.join("\n")
+        @attr 't', t
+
     Path: (path, options={}) -> new MWClassShowPath(@root, path, options)
     MWClassShowPath: class MWClassShowPath extends MWClassShowStimulus
       _param: null
@@ -912,6 +1392,7 @@ window.MWLearn = class MWLearn
         bWidthAuto = options.width=='auto'
         bHeightAuto = options.height=='auto'
         bAuto = bWidthAuto or bHeightAuto
+
         if bWidthAuto
           if not bHeightAuto
             options.width = options.height
@@ -925,18 +1406,17 @@ window.MWLearn = class MWLearn
           path: path
           width: options.width
           height: options.height
-          l: 0
-          t: 0
+          l: (root.width()-options.width)/2
+          t: (root.height()-options.height)/2
           orientation: 0
         }
 
-        options = remove options, ['width', 'height']
         @element = root.paper.path(@constructPath(null,false))
 
-        super root, options
+        options = remove options, ['width', 'height']
+        super root, options, false
 
-        if bAuto
-          @attr 'width', 'auto'
+        if bAuto then @attr('width', 'auto')
 
       _bottomRightCorner: ->
         p = [@_param.width/2, @_param.height/2]
@@ -1009,101 +1489,26 @@ window.MWLearn = class MWLearn
               path += p + ","
         if setPath then @element.attr "path", path else path
 
-    Instructions: (text, options={}) -> new MWClassShowInstructions(@root, text, options)
-    MWClassShowInstructions: class MWClassShowInstructions extends MWClassShowText
-      constructor: (root, text, options) ->
-        @root = root
+    X: (options={}) -> new MWClassShowX(@root, options)
+    MWClassShowX: class MWClassShowX extends MWClassShowPath
+      constructor: (root, options) ->
+        options.width = options.width ? 16
+        options.height = options.height ? 16
+        options['stroke-width'] = options['stroke-width'] ? 4
 
-        options = @parseOptions options, {
-          "font-family": "Arial"
-          "font-size": 36
-        }
-
-        super root, text, options
-
-    Timer: (tTotal, options={}) -> new MWClassShowTimer(@root, tTotal, options)
-    MWClassShowTimer: class MWClassShowTimer extends MWClassShowText
-      tTotal: 0
-      tTimer: 0
-      tGo: null
-
-      name: null
-
-      showms: false
-      prefix: null
-      suffix: null
-
-      _intervalID: null
-
-      _setTimer: (t) ->
-        @tTimer.set t
-        @render()
-
-      constructor: (root, tTotal, options) ->
-        @root = root
-        @base = root.base
-
-        @tTotal = tTotal
-        @name = options.name ? 'timer'
-        @showms = options.showms ? false
-        @prefix = options.prefix ? null
-        @suffix = options.suffix ? 'remaining'
-        @tUpdate = options.update_interval ? (if @showms then 10 else 250)
-
-        @tTimer = @base.data.variable "#{@name}_remaining", @tTotal,
-          timeout: msPerT('dayminus10minutes')
-
-        super root, @string(), options
-
-      remaining: ->
-        Math.max(0,if @tGo? then (@tTimer.get()-(@root.time.Now()-@tGo)) else @tTimer.get())
-
-      string: ->
-        t = @remaining()
-
-        hours = Math.floor(convertTime(t,'ms','hour'))
-        t -= convertTime(hours,'hour','ms')
-
-        minutes = Math.floor(convertTime(t,'ms','minute'))
-        t -= convertTime(minutes,'minute','ms')
-
-        seconds = Math.floor(convertTime(t,'ms','second'))
-        t -= convertTime(seconds,'second','ms')
-
-        strHours = if hours>0 then "#{zpad(hours,2)}:" else ''
-        strMinutes = "#{zpad(minutes,2)}:"
-        strSeconds = zpad(seconds,2)
-        strMS = if @showms then ".#{t}" else ''
-
-        prefix = if @prefix? then "#{@prefix}: " else ''
-        suffix = if @suffix? then " #{@suffix}" else ''
-        "#{prefix}#{strHours}#{strMinutes}#{strSeconds}#{strMS}#{suffix}"
-
-      render: -> @attr "text", @string()
-
-      update: ->
-        if @remaining()<=0 then @stop()
-        @render()
-
-      go: ->
-        @tGo = @root.time.Now()
-        @_intervalID = window.setInterval (=> @update()), @tUpdate
-
-      stop: ->
-        if @_intervalID? then clearInterval(@_intervalID)
-        tRemain = @remaining()
-        @tGo = null
-        @_setTimer(tRemain)
+        path = [['M',0,0],['L',1,1],['M',0,1],['L',1,0]]
+        super root, path, options
 
     Image: (src, options={}) -> new MWClassShowImage(@root, src, options)
     MWClassShowImage: class MWClassShowImage extends MWClassShowStimulus
       constructor: (root, src, options) ->
         @root = root
+        @base = root.base
 
-        bAutoSize = src of root.im
+        bAutoSize = src of @base.im
         options = @parseOptions options, {
-          width: if bAutoSize then root.im[src].width else @_defaults.width
-          height: if bAutoSize then root.im[src].height else @_defaults.height
+          width: if bAutoSize then @base.im[src].width else @_defaults.width
+          height: if bAutoSize then @base.im[src].height else @_defaults.height
         }
 
         l = @x2l(options.x, options.width)
@@ -1125,7 +1530,6 @@ window.MWLearn = class MWLearn
 
     ColorMask: (src, options={}) -> new MWClassShowColorMask(@root,src,options)
     MWClassShowColorMask: class MWClassShowColorMask extends MWClassShowCompoundStimulus
-      _background: null
       _im: null
 
       constructor: (root, src, options) ->
@@ -1137,19 +1541,18 @@ window.MWLearn = class MWLearn
           height: if bAutoSize then root.im[src].height else @_defaults.height
         }
 
-        elements = []
-        if options.color != "none" then elements.push (@_background = root.show.Rectangle())
-        elements.push (@_im = root.show.Image src)
+        if options.color != "none" then options.background = options.color
 
-        super root, elements, options
+        options = remove options, ['color']
+
+        @_im = root.show.Image src
+
+        super root, [@_im], options
 
       attr: (name, value) ->
         switch name
           when "color"
             if @_background? then ret = @_background.attr name, value
-          when "width", "height"
-            ret = @_im.attr name, value
-            if value? and @_background? then @_background.attr name, @attr(name)-1
           else
             ret = super name, value
 
@@ -1161,10 +1564,14 @@ window.MWLearn = class MWLearn
       @_position: null
 
       constructor: (root, i, position, options) ->
+        @root = root
+        @base = root.base
+
         @_idx = i
         @_position = position
-        src = root.game.construct.srcPart @_idx, @_position
-        super root, src, options
+        src = @root.game.construct.srcPart @_idx, @_position
+
+        super @root, src, options
 
       idx: -> @_idx
 
@@ -1176,21 +1583,23 @@ window.MWLearn = class MWLearn
 
       constructor: (root, parts, options) ->
         @root = root
+        @base = root.base
 
         if Array.isArray(parts)
           @_idx = parts
           @_d = mean(@_idx)/@root.game.construct.nPart
         else if parts>=0 and parts<=1
-          @_idx = root.game.construct.pick(4,parts)
+          @_idx = @root.game.construct.pick(4,parts)
           @_d = parts
         else
           throw "Invalid parts"
 
         options = @parseOptions options, {
-          # width: 2*root.im[root.game.construct.srcPart(0)].width
-          # height: 2*root.im[root.game.construct.srcPart(0)].height
+          # width: 2*root.im[@root.game.construct.srcPart(0)].width
+          # height: 2*root.im[@root.game.construct.srcPart(0)].height
           width: 200
           height: 200
+          color: 'black'
         }
 
         wPart = options.width/2
@@ -1214,24 +1623,29 @@ window.MWLearn = class MWLearn
           height: hPart
         }
 
-        elements = [root.show.Rectangle(merge options, {
-          width: options.width-4
-          height: options.height-4
-          color: options.color
-        })]
+        elements = []
         for i in [0..3]
           opt = merge optionsPart, {
             x:xPart[i]
             y:yPart[i]
             color: "none"
           }
-          src = root.game.construct.srcPart @_idx[i], i
+          src = @root.game.construct.srcPart @_idx[i], i
           elements.push (root.show.Image src, opt)
 
-
-        options = remove options, ['x', 'y', 'width', 'height', 'color']
+        if options.color != "none" then options.background = options.color
+        options = remove options, ['x', 'y', 'width', 'height','color']
 
         super root, elements, options, false
+
+      attr: (name, value) ->
+        switch name
+          when "color"
+            if @_background? then ret = @_background.attr name, value
+          else
+            ret = super name, value
+
+        if value? then @ else ret
 
       idx: -> @_idx
 
@@ -1276,6 +1690,7 @@ window.MWLearn = class MWLearn
         cp = (0 for [1..nPart])
         for part,idx in @_idx
           x = xStart + (w+xPad)*idx + w/2
+
           cp[idx] = root.show.ConstructPart part, idx,
             width: w
             height: h
@@ -1292,12 +1707,15 @@ window.MWLearn = class MWLearn
       part: null
 
       constructor: (root, part, options) ->
+        @root = root
+        @base = root.base
+
         options.size = options.size ? 100
         options.thickness = options.thickness ? 10
 
         @part = part
 
-        @_param = merge root.game.assemblage.param(@part),
+        @_param = merge @root.game.assemblage.param(@part),
           index: null
           width: options.size
           height: options.size
@@ -1523,7 +1941,10 @@ window.MWLearn = class MWLearn
       correct: true
 
       constructor: (root, options) ->
-        parts = root.game.assemblage.parts()
+        @root = root
+        @base = root.base
+
+        parts = @root.game.assemblage.parts()
 
         options.x = options.x ? 0
         options.y = options.y ? 0
@@ -1831,6 +2252,7 @@ window.MWLearn = class MWLearn
 
       constructor: (root, idx, options) ->
         @root = root
+        @base = root.base
 
         @_idx = idx
 
@@ -1846,7 +2268,7 @@ window.MWLearn = class MWLearn
         else if not options.height?
           options.height = options.width
 
-        @_path = root.show.Path root.game.rotate.path[@_idx], options
+        @_path = @root.show.Path @root.game.rotate.path[@_idx], options
 
         options = remove options, ['orientation','width','height']
         options.background = options.background ? root.background
@@ -1976,6 +2398,41 @@ window.MWLearn = class MWLearn
 
         if f>=1 then @remove()
 
+    TrialRecord: (options={}) -> new MWClassShowTrialRecord(@root,options)
+    MWClassShowTrialRecord: class MWClassShowTrialRecord extends MWClassShowStimulusGrid
+      colCorrect: null
+      colWrong: null
+
+      constructor: (root, options) ->
+        @colCorrect = options.col_correct ? 'lime'
+        @colWrong = options.col_wrong ? 'red'
+
+        super root, [], options
+
+      append: (trialType, correct, param) -> @addElement trialType, correct, param
+
+      addElement: (trialType, correct, param) ->
+        col = if correct then @colCorrect else @colWrong
+
+        el = switch trialType
+            when 'construct'
+              @root.show.ConstructFigure param.parts,
+                color: col
+            when 'assemblage'
+              x = @root.show.Assemblage
+                color: col
+              x.addSet param.set
+              x.rotate param.rotation/90
+              x
+            when 'rotate'
+              @root.show.RotateStimulus param.shape,
+                color: col
+                orientation: param.orientation
+            else
+              throw "#{trialType} is an invalid trial type."
+
+        super el
+
   Input: -> new MWClassInput(@)
   MWClassInput: class MWClassInput extends MWClass
     _event_handlers: null
@@ -1988,8 +2445,8 @@ window.MWLearn = class MWLearn
         mouse_down: []
       }
 
-      $(document).keydown( (evt) => @_handleKey(evt,'down') )
-      $(document).mousedown( (evt) => @_handleMouse(evt,'down') )
+      $("\##{@root.container}").keydown( (evt) => @_handleKey(evt,'down') )
+      $("\##{@root.container}").mousedown( (evt) => @_handleMouse(evt,'down') )
 
     _handleEvent: (evt, handlerType, fCheckHandler) ->
       handlers = @_event_handlers[handlerType]
@@ -2074,7 +2531,12 @@ window.MWLearn = class MWLearn
 
   Time: -> new MWClassTime(@)
   MWClassTime: class MWClassTime extends MWClass
+
     Now: -> new Date().getTime()
+
+    Pause: (ms) ->
+      tStart = @Now()
+      null while @Now()<tStart+ms
 
   Color: -> new MWClassColor(@)
   MWClassColor: class MWClassColor extends MWClass
@@ -2146,10 +2608,9 @@ window.MWLearn = class MWLearn
 
       _fCheck: null
       _timer: null
-      _countdown: false
 
-      _tStart: 0
-      _tStep: 0
+      _tStart: null
+      _tStep: null
 
       _fPre: null
       pre: null
@@ -2173,9 +2634,8 @@ window.MWLearn = class MWLearn
               executed, take this object and the current step index as inputs,
               and returns one of the above
           options:
+            description: a description of the sequence
             execute:  true to execute the sequence immediately
-            countdown: true to count down the session timer while executing the
-              sequence
             mode: time mode ('step', 'sequence', or 'absolute')
             pre: a function that takes this object as input and returns an
               object of info to be stored in this object's pre property. the
@@ -2188,12 +2648,12 @@ window.MWLearn = class MWLearn
 
         @_fPre = options.pre ? null
         options.execute = options.execute ? true
-        @_countdown = options.countdown ? false
         @mode = options.mode ? "step"
         @callback = options.callback ? null
         @_fCleanup = options.cleanup ? null
 
         @_name = name
+        @_description = options.description ? options.name
         @_fStep = fStep
         @_next = next
 
@@ -2220,7 +2680,7 @@ window.MWLearn = class MWLearn
           @getFDoStep(@_idx)()
 
       setSequence: ->
-        nStep = @_fStep.length + (if @callback? then 1 else 0)
+        nStep = @_fStep.length + 1
         for idx in [0..nStep-1]
           @root.queue.add @stepName(idx), (=> @processStep()), {do: false}
 
@@ -2231,8 +2691,8 @@ window.MWLearn = class MWLearn
 
         if @_idx>0
           @cleanupStep(@_idx-1)
-        else if @_fPre?
-          @pre = @_fPre(@)
+        else
+          @startSequence()
 
         if @_idx==@_fStep.length
           @finishSequence()
@@ -2292,13 +2752,20 @@ window.MWLearn = class MWLearn
         else
           throw "Invalid next value"
 
-      finishSequence: () ->
+      startSequence: ->
+        @_tStart = @_tStep ? @root.time.Now()
+
+        @base.action.start @_name, @_description
+
+        if @_fPre? then @pre = @_fPre(@)
+
+      finishSequence: ->
         if @callback? then @callback(@)
         @finished = true
 
-      Execute: ->
-        @_tStart = @root.time.Now()
+        @base.action.stop @_name
 
+      Execute: ->
         @finished = false
         @_idx = 0
 
@@ -2433,7 +2900,7 @@ window.MWLearn = class MWLearn
     constructor: (root) ->
       super root
 
-      @_queue = []
+      @clear()
 
     length: -> @_queue.length
 
@@ -2443,9 +2910,11 @@ window.MWLearn = class MWLearn
 
       if options.do then @do name
 
-    do: (name) ->
-      if @_queue.length > 0
-        if @_queue[0].name==name
+    do: (name=null) ->
+      if @_queue.length>0
+        if not name? and @_queue[0].ready
+          @do(@_queue[0].name)
+        else if @_queue[0].name==name and @root.ready()
           @_queue[0].ready = true
           @_queue.shift().f() while @_queue.length>0 and @_queue[0].ready
         else
@@ -2454,20 +2923,314 @@ window.MWLearn = class MWLearn
               @_queue[i].ready = true
               break
 
+    clear: -> @_queue = []
+
+  Data: -> new MWClassData(@)
+  MWClassData: class MWClassData extends MWClass
+    timeout: null
+
+    _local: false
+
+    _local_datastore: null
+    _archive: null
+
+    _numBusy: 0
+
+    _failed: false
+    _failSafeExecuted: false
+
+    constructor: (root, options={}) ->
+      super root
+
+      @timeout = options.timeout ? 10000
+      @_local = options.local ? not @root.type=='experiment'
+
+      @_local_datastore = {}
+      @_archive = {}
+
+      @load()
+
+    load: ->
+      @block('loading data')
+
+      @read 'keys',
+        store: false
+        callback: (result) => @loadCallback(result)
+
+    loadCallback: (result) ->
+      keys = result.value ? null
+
+      if keys?
+        for key in keys
+          @_numBusy++
+          @read key,
+            callback: (result) => @unblock()
+      else
+        @unblock()
+
+    save: () ->
+      @block('saving data')
+
+      previousFailure = @_failed
+
+      for key of @_local_datastore
+        @_numBusy++
+        @write key, @_local_datastore[key],
+          store: false
+          callback: (result) => @saveCallback(result, previousFailure)
+
+      for key of @_archive
+        for id of @_archive[key]
+          @_numBusy++
+          @archive key,
+            store: false
+            id: id
+            callback: (result) => @saveCallback(result, previousFailure)
+
+    saveCallback: (result, previousFailure) ->
+      if not result.success and previousFailure then @failSafe()
+      @unblock()
+
+    block: (description) ->
+      @_numBusy = 0
+      @root.action.start 'data_process', description
+      @root.queue.add 'data_block', (-> null), {do:false}
+
+    unblock: ->
+      if @_numBusy>0 then @_numBusy--
+
+      if @_numBusy==0
+        @root.action.stop 'data_process'
+        @root.queue.do 'data_block'
+
+    ajax: (data, options) ->
+      $.ajax
+        url: '/data'
+        data: data
+        success: (result) => @["#{data.action}Callback"](result, options)
+        error: (jqXHR, status, err) => @failure()
+        timeout: @timeout
+
+    read: (key, options={}) ->
+      options.force_remote = options.force_remote ? false
+      options.store = options.store ? true
+      options.callback = options.callback ? null
+
+      if @_local or (not options.force_remote and key of @_local_datastore)
+        result = {
+          success: true
+          action: 'read'
+          key: key
+          status: if (key of @_local_datastore) then 'read' else 'nonexistent'
+          value: @_local_datastore[key]
+        }
+        window.setTimeout (=> @readCallback(result, options)), 0
+      else
+        data = {
+          action: 'read'
+          key: key
+        }
+
+        @ajax data, options
+
+    readCallback: (result, options) ->
+      if result.success
+        if options.store and result.status=='read'
+          @_local_datastore[result.key] = result.value
+      else
+        @failure()
+      if options.callback? then options.callback(result)
+
+    write: (key, value, options={}) ->
+      options.store = options.store ? true
+      options.callback = options.callback ? null
+
+      #write locally
+      if options.store
+        newKey = not key of @_local_datastore
+        @_local_datastore[key] = value
+        if newKey then @write 'keys', Object.keys(@_local_datastore),
+          store: false
+
+      if @_local
+        result = {
+          success: true
+          action: 'write'
+          key: key
+          status: 'write'
+        }
+        window.setTimeout (=> @writeCallback(result, options)), 0
+      else
+        data = {
+          action: 'write'
+          key: key
+          value: JSON.stringify(value)
+        }
+
+        @ajax data, options
+
+    writeCallback: (result, options) ->
+      if not result.success then @failure()
+      if options.callback? then options.callback(result)
+
+    archive: (key, options={}) ->
+      options.store = options.store ? true
+      options.callback = options.callback ? null
+      options.id = options.id ? @root.time.Now()
+
+      #archive locally
+      if options.store
+        if not (key of @_archive) then @_archive[key] = {}
+        @_archive[key][options.id] = @_local_datastore[key]
+
+      if @_local
+        result = {
+          success: true
+          action: 'archive'
+          key: key
+          status: 'archive'
+          id: options.id
+        }
+        window.setTimeout (=> @archiveCallback(result, options)), 0
+      else
+        data = {
+          action: 'archive'
+          key: key
+          id: options.id
+          value: JSON.stringify(@_local_datastore[key])
+        }
+
+        @ajax data, options
+
+    archiveCallback: (result, options) ->
+      if not result.success then @failure()
+      if options.callback? then options.callback(result)
+
+    failure: -> @_failed = true
+
+    failSafe: ->
+      if not @_failSafeExecuted
+        @_failSafeExecuted = true
+
+        failSafeData = "#{JSON.stringify(@_local_datastore)}\n\n#{JSON.stringify(@_archive)}"
+
+        $('#failsafe_data').val(failSafeData)
+
+        mailSubject = encodeURIComponent("Session Data for #{@base.user}")
+        mailBody = if failSafeData.length < 2000
+          encodeURIComponent(failSafeData)
+        else
+          ''
+
+        $('#failsafe_mailto').attr("href", "mailto:schlegel@gmail.com?subject=#{mailSubject}&body=#{mailBody}")
+        $('#failsafe').show()
+        #***don't continue until closed
+
+    Variable: (key, value, options={}) -> new MWClassDataVariable(@, key, value, options)
+    MWClassDataVariable: class MWClassDataVariable
+      track: false
+
+      _data: null
+
+      _key: null
+      _value: null
+
+      _initialized: false
+
+      constructor: (data, key, value, options) ->
+        ###
+          data: the parent MWClassData object
+          key: the variable name
+          value: the variable value
+          options:
+            track: true to archive each change to the variable
+            timeout: the number of milliseconds before the variable value resets
+              to its initial value
+            timeout_type: one of the following:
+              'session': value will only reset in between sessions
+              'instant': value will reset immediately after timeout
+        ###
+        @_data = data
+
+        @track = options.track ? false
+        options.timeout = options.timeout ? null
+        options.timeout_type = options.timeout_type ? 'session'
+
+        @_key = key
+        @_value = {value:value}
+
+        if options.timeout?
+          @_value.timeout = options.timeout
+          @_value.timeout_type = options.timeout_type
+
+        @update()
+
+      update: ->
+        @_data.read @_key,
+          callback: (result) => @dataCallback(result)
+
+      initialize: ->
+        if @_value.timeout? then @_value.initial = @_value.value
+        @reset()
+
+      reset: ->
+        if @_value.timeout?
+          @_value.reset_time = @_data.root.time.Now()
+          @set @_value.initial
+        else
+          @set @_value.value
+
+      dataCallback: (result) ->
+        if result.success
+          switch result.status
+            when 'nonexistent'
+              @initialize()
+            when 'read'
+              @_value = result.value
+              @checkTimeout()
+            when 'write'
+              if @track then @_data.archive @_key,
+                callback: (result) => @dataCallback(result)
+              @checkTimeout()
+            when 'archive'
+              null
+            else
+              null
+
+          if not @_initialized then @_initialized = true
+
+      checkTimeout: ->
+        if @_value.timeout? and (@_value.timeout_type=='instant' or not @_initialized)
+          tNextReset = @_value.reset_time + @_value.timeout
+          if @_data.root.time.Now() >= tNextReset then @reset()
+
+      get: -> @_value.value
+
+      set: (value) ->
+        @_value.value = value
+        @_data.write @_key, @_value,
+          callback: (result) => @dataCallback(result)
+        @
+
   Game: -> new MWClassGame(@)
   MWClassGame: class MWClassGame extends MWClass
+    gameNames: null
+
     constructor: (root) ->
       super root
 
-      @construct = @Construct()
-      @assemblage = @Assemblage()
-      @rotate = @Rotate()
+      @gameNames = ['construct','assemblage','rotate']
+      @[game] = @[capitalize(game)]() for game in @gameNames
 
     MWClassGameBase: class MWClassGameBase extends MWClass
       name: ''
 
-      current_trial: null
+      record: null
+      popup: null
+
+      current_trial: 0
       trial_result: null
+      trials_finished: null
 
       nDistractor: 3
 
@@ -2476,6 +3239,16 @@ window.MWLearn = class MWLearn
       tTest: 3000
       tFeedback: 2000
 
+      lastCorrect: null
+      streakLength: 0
+
+      skillInit: 0
+      skillStep: 0.01
+      skillMin: 0
+      skillMax: 1
+      skillName: 'skill'
+      skill: null
+
       _doOperate: true
 
       constructor: (root, name) ->
@@ -2483,11 +3256,29 @@ window.MWLearn = class MWLearn
 
         @name = name
 
-        @trial_result = []
+        @record = objPath(@,'root','el','history','el','record')
+        @popup = objPath(@,'base','el','popup')
 
-      trialName: (trial=null) ->
-        trial = trial ? @current_trial
+        @trial_result = @root.data.Variable "#{@name}_trial_result", null,
+          track: true
+
+        @trials_finished = @root.data.Variable "#{@name}_trials_finished", 0
+
+        @skill = @root.data.Variable "#{@name}_skill", @skillInit
+
+      trialName: (options={}) ->
+        trial = options.trial ? @current_trial
         "#{@name}trial#{trial}"
+
+      trialDescription: (options={}) ->
+        trial = options.trial ? @current_trial
+        extra = options.extra ? false
+        description = options.description ? "#{capitalize(@name)} trial #{trial+1}"
+        param = options.param ? {}
+        skill = param[@skillName] ? @skill.get()
+
+        strExtra = if extra then " (#{@skillName}=#{skill})" else ''
+        "#{description}#{strExtra}"
 
       create: (param) -> throw 'not implemented'
       createDistractor: (target) -> (target.createDistractor({show:false}) for [1..@nDistractor])
@@ -2518,30 +3309,39 @@ window.MWLearn = class MWLearn
           x: xFeedback
           y: yFeedback
           "font-size": 36
+          "text-anchor": "middle"
         [target, text]
       feedbackStim: -> (s, idx) => @feedback s.pre.target, s.result[idx-1].correct, s.result[idx-1].choice
       feedbackNext: -> @tFeedback
 
-      trial: (param={}, options={}) ->
+      trial: (param=null, options={}) ->
         ###
           options:
-            result: a function that takes the trial show object (at the end of
-              the trial) and returns an object recording the results of the
-              trial
+            trial: the trial to run
+            skill: the normalized skill level for the current trial (0->1)
+            cleanupStim: the show sequence stimulus cleanup option
+            countdown: true to countdown the session timer
+            description: the trial description
+            pre: a function to execute before starting the sequence
+            callback: function to run at the end of the show sequence
         ###
-        #default returns the result of the penultimate show stimulus (i.e. the
-        #test screen)
-        options.result = options.result ? (shw) -> shw.result[shw.result.length-2]
-        fCallback = (shw) => @trial_result.push options.result(shw)
-        options.callback = options.callback ? fCallback
+        options.trial = options.trial ? @current_trial
+        options.skill = options.skill ? null
         options.cleanupStim = options.cleanupStim ? 'sequence'
         options.countdown = options.countdown ? true
 
-        #increment the trial
-        @current_trial = if @current_trial? then @current_trial+1 else 0
+        param = @getTrialParam(param,options.skill)
+
+        description = options.description ? null
+        options.description = @trialDescription
+          trial: options.trial
+          description: description
+          param: param
+          extra: @base.debug
 
         #pre step to construct the trial target
         options.pre = options.pre ? (shw) => {
+          param: param
           target: @create param
         }
 
@@ -2549,10 +3349,15 @@ window.MWLearn = class MWLearn
         next = []
 
         #add the trial start prompt
-        stim.push [['Instructions', "Click to begin #{@name} trial #{@current_trial+1}"]]
-        next.push ['mouse', {
-          f: => @root.el.status.el.timer.go()
-        }]
+        paramStart = if options.countdown then {f: => @root.session.startTimer()} else {}
+        promptDescription = @trialDescription
+          trial: options.trial
+          description: description
+          param: param
+        prompt = "Click to begin #{promptDescription}."
+        if options.trial==0 then prompt += "\n \nClick the tutorial on the left for a refresher."
+        stim.push [['Instructions', prompt]]
+        next.push ['mouse', paramStart]
 
         #prompt
         stim.push @promptStim()
@@ -2571,19 +3376,108 @@ window.MWLearn = class MWLearn
         stim.push @feedbackStim()
         next.push @feedbackNext()
 
-        #add the bit to stop the timer
-        fCallback = options.callback
-        fStopTimer = => @root.el.status.el.timer.stop()
-        options.callback = (obj) -> fCallback(obj); fStopTimer();
+        #callback
+        f = options.callback ? null
+        options.callback = (shw) =>
+          @trialEnd(shw, options.countdown)
+          if f? then f(shw)
 
         #do it now!
-        shw = @root.exec.Show "#{@trialName()}", stim, next, options
+        trialName = @trialName
+          trial: options.trial
+        shw = @root.exec.Show "#{trialName}", stim, next, options
 
       color: (x) -> @root.color.pick()
+
+      stepSkill: (correct) ->
+        if correct==@lastCorrect
+          @streakLength += 1
+        else
+          @lastCorrect = correct
+          @streakLength = 1
+
+        step = @streakLength*@skillStep*(if correct then 1 else -1)
+        skillNew = Math.min(@skillMax,Math.max(@skillMin,@skill.get()+step))
+        @skill.set skillNew
+
+      getTrialParam: (param={},skill=null) ->
+        param[@skillName] = param[@skillName] ? if skill?
+          @skillMin + skill*(@skillMax-@skillMin)
+        else
+          @skill.get()
+        param
+
+      trialResult: (shw) -> merge shw.pre.param, shw.result[shw.result.length-2]
+
+      trialEnd: (shw, countdown) ->
+        result = @trialResult(shw)
+
+        @trial_result.set result
+        @stepSkill result.correct
+
+        if @record? then @record.append @name, result.correct, shw.pre.param
+        if countdown then @root.session.stopTimer()
+
+        #increment the trial
+        @current_trial += 1
+        @trials_finished.set @trials_finished.get()+1
+
+      tutorial: ->
+        if @root.type!='popup'
+          @base.el.popup.game[@name].tutorial()
+        else
+          @root.queue.add 'tutorial_start', ((that) => => that.tutorialStart())(@)
+          @root.queue.add 'tutorial_intro', ((that) => => that.tutorialIntro())(@)
+          @root.queue.add 'tutorial_step', ((that) => => that.tutorialStep())(@)
+
+      tutorialStart: -> @root.visible true
+
+      tutorialIntro: ->
+        stim = []
+        next = []
+
+        idx = 1
+        while @["tutorialIntro#{idx}"]?
+          stimCur = ((fStimIntro) => (s,idx) =>
+            stim = forceArray(fStimIntro())
+            stim.push(@root.show.Text 'Click anywhere to continue.',
+              l: 10
+              t: 10
+            )
+            stim
+          )(@["tutorialIntro#{idx}"]())
+
+          stim.push stimCur
+          next.push ['mouse']
+          idx++
+
+        shw = @root.exec.Show "#{@name}_tutorial_intro", stim, next,
+          description: "#{capitalize(@name)} tutorial introduction"
+
+      tutorialStep: (responseYes=true) ->
+        if responseYes then @tutorialTrial() else @tutorialEnd()
+
+      tutorialTrial: ->
+        @trial null,
+          trial: 'practice'
+          callback: (shw) => @tutorialPrompt()
+          description: "a practice #{capitalize(@name)} trial"
+
+      tutorialPrompt: ->
+        @root.show.YesNo 'Continue?',
+          callback: (response) => @tutorialStep(response)
+
+      tutorialEnd: -> @root.visible false
 
     Construct: -> new MWClassGameConstruct(@root)
     MWClassGameConstruct: class MWClassGameConstruct extends MWClassGameBase
       nPart: 100
+
+      skillInit: 0.05
+      skillStep: 0.01
+      skillMin: 0
+      skillMax: 1
+      skillName: 'd'
 
       constructor: (root) -> super root, 'construct'
 
@@ -2634,20 +3528,54 @@ window.MWLearn = class MWLearn
       difficultyColor: (d, dMin=0, dMax=0.4) ->
         @root.color.blend('difficulty', (d-dMin)/dMax)
 
-      create: (param={}) ->
-        param.d = param.d ? 0.2
-
+      create: (param) ->
         target = @root.show.ConstructFigure param.d,
           color: @color()
           show: false
+
+        param.parts = target._idx
+
+        target
       createDistractor: (target) -> target.createDistractors(@nDistractor)
 
-      prompt: (target) -> @root.show.ConstructPrompt(target,{show:false})
+      prompt: (target) ->
+        @root.show.ConstructPrompt(target,{show:false})
+
+      tutorialIntro1: ->
+        str = 'In these trials you will mentally\nconstruct four parts into a figure.'
+        (s, idx) => @root.show.Instructions str
+      tutorialIntro2: ->
+        (s, idx) =>
+          pad=10
+          figure = @create @getTrialParam()
+          parts = @prompt figure
+          parts.attr 't', pad
+          figure.attr 't', @root.height()-figure.attr('height')-pad
+          arrow = @root.show.Text "↓",
+            t: (figure.attr('t')+parts.attr('t'))/2
+            "font-size": 72
+          stim = [parts, figure, arrow]
+          for idx in [0..3]
+            stim.push @root.show.Text idx+1,
+              "font-size": 32
+              x: parts.element[idx].attr('x')
+              y: parts.element[idx].attr('y')
+            stim.push @root.show.Text idx+1,
+              "font-size": 32
+              x: figure.element[idx].attr('x')
+              y: figure.element[idx].attr('y')
+          stim
 
     Assemblage: -> new MWClassGameAssemblage(@root)
     MWClassGameAssemblage: class MWClassGameAssemblage extends MWClassGameBase
       tPerPromptWord: 300
       tImagine: 500
+
+      skillInit: 3
+      skillStep: 1
+      skillMin: 1
+      skillMax: 100
+      skillName: 'steps'
 
       _map: null
       _param: null
@@ -2697,10 +3625,12 @@ window.MWLearn = class MWLearn
 
         @_map[name] = @_param.push(options) - 1
 
-      create: (param={}) ->
-        param.steps = param.steps ? 1
+      getTrialParam: (param={},skill=null) ->
+        param = super(param,skill)
         param.imax = param.imax ? null
+        param
 
+      create: (param) ->
         target = @root.show.Assemblage #make a new assemblage
             color: @color()
             imax: param.imax
@@ -2717,6 +3647,11 @@ window.MWLearn = class MWLearn
           if iStep < param.steps
             target.rotate randomInt(1,3)
             iStep++
+
+        param.steps = target._history
+        param.set = target.getSet()
+        param.rotation = target._rotation
+
         target
 
       prompt: (target) ->
@@ -2734,8 +3669,23 @@ window.MWLearn = class MWLearn
       promptNext: ->
         that = @
         fPromptTimeout = (s) -> that.promptTime s.pre.target
-        fPromptNext = (s,idx) -> ['choice', {timeout: fPromptTimeout(s)}]
-        ['lazy', fPromptNext]
+        #fPromptNext = (s,idx) -> ['choice', {timeout: fPromptTimeout(s)}]
+        ['lazy', fPromptTimeout]
+
+      tutorialIntro1: ->
+        str = 'In these trials you will mentally\nconstruct assemblages from verbal descriptions.'
+        (s, idx) => @root.show.Instructions str
+      tutorialIntro2: ->
+        (s, idx) =>
+          pad=20
+          assemblage = @create @getTrialParam()
+          instruct = @prompt assemblage
+          instruct.attr 'l', pad
+          assemblage.attr 'l', @root.width()-assemblage.attr('width')-pad
+          arrow = @root.show.Text "→",
+            l: (instruct.attr('l')+instruct.attr('width')+assemblage.attr('l'))/2
+            "font-size": 72
+          [instruct, assemblage, arrow]
 
     Rotate: -> new MWClassGameRotate(@root)
     MWClassGameRotate: class MWClassGameRotate extends MWClassGameBase
@@ -2747,15 +3697,29 @@ window.MWLearn = class MWLearn
         #TODO add rest of rotate shapes
       ]
 
+      skillInit: 45
+      skillStep: 1
+      skillMin: 0
+      skillMax: 89
+      skillName: 'precision'
+
       constructor: (root) -> super root, 'rotate'
 
-      create: (param={}) ->
-        param.precision = param.precision ? null
+      getTrialParam: (param={},skill=null) ->
+        param = super(param,skill)
+        param.shape = randomInt(0,@path.length-1)
+        param
 
-        target = @root.show.RotateStimulus randomInt(0,@path.length-1),
+      create: (param) ->
+        target = @root.show.RotateStimulus param.shape,
             color: @color()
-            precision: param.precision
+            precision: 90 - param.precision
             show: false
+
+        param.orientation = target._path._param.orientation
+        param.initialOrientation = target._initialOrientation
+
+        target
 
       prompt: (target) ->
         initial = target.createPrompt()
@@ -2769,150 +3733,87 @@ window.MWLearn = class MWLearn
 
         [initial, instruction]
 
-  Data: -> new MWClassData(@)
-  MWClassData: class MWClassData extends MWClass
-    _data: null
+      tutorialIntro1: ->
+        str = 'In these trials you will\nmentally rotate shapes.'
+        (s, idx) => @root.show.Instructions str
+      tutorialIntro2: ->
+        (s, idx) =>
+          pad=20
+          target = @create @getTrialParam()
+          prompt = @prompt target
 
-    _idle: null
+          prompt[0].attr 'l', pad
+          prompt[1].attr 'x', prompt[0].attr('x')
 
-    constructor: (root) ->
-      super root
-      @_data = {}
-
-      @load()
-
-    load: ->
-      @block()
-      @read 'keys',
-        callback: (result) => @finish_load(result)
-
-    finish_load: (result) ->
-      keys = result.value
-
-      for key in keys
-        that._data[key] = @variable key, null,
-          init_callback: (x) => @checkUnblock() #TODO init_callback
-
-    save: ->
-      @block()
-
-      for key,variable of @_data
-        @write key, variable._info
-          callback: (result) => that.checkUnblock()
-
-    block: -> null #@root.queue.add 'data_block', (-> null), {do:false} ***
-
-    unblock: -> null #@root.queue.do 'data_block' ***
-
-    checkUnblock: ->
-      return for key,val of @_idle when not val
-      return for key,val of @_data when not @idle[key] #TODO variable.idle
-      @unblock()
-
-    variable: (key, value, options={}) ->
-      overwrite = options.overwrite ? false
-
-      bNew = not (key of @_data)
-      if bNew or overwrite
-        @_data[key] = new MWClassDataVariable(@, key, value, options)
-
-        if bNew then @write 'keys', Object.keys(@_data)
-
-      @_data[key]
-
-    read: (key, options={}) ->
-      options.callback = options.callback ? null
-      #TODO implement data.read
-
-    write: (key, value, options={}) ->
-      options.callback = options.callback ? null
-      #TODO implement data.write
-
-    MWClassDataVariable: class MWClassDataVariable
-      idle: true
-
-      _data: null
-      _info: null
-
-      _initialized: false
-      _initCallback: null
-
-      constructor: (data, key, value, options) ->
-        ###
-          data: the parent MWClassData object
-          key: the variable name
-          value: the variable value
-          options:
-            overwrite: true to overwrite an existing variable with the same key
-            timeout: the number of milliseconds before the variable value resets
-              to its initial value
-            timeout_type: one of the following:
-              'session': value will only reset in between sessions
-              'instant': value will reset immediately after timeout
-        ###
-        @_data = data
-
-        options.overwrite = options.overwrite ? false
-        options.timeout = options.timeout ? null
-        options.timeout_type = options.timeout_type ? 'session'
-
-        @_initCallback = options.init_callback ? null
-
-        @_info = remove options, ['overwrite']
-        @_info.key = key
-        @_info.value = value
-
-        if options.overwrite then @initialize() else @update()
-
-      initialize: ->
-        @_info.initial = @_info.value
-        @reset()
-
-      update: ->
-        @_data.read @_info.key,
-          callback: (result) => @readWriteCallback(result)
-
-      reset: ->
-        @_info.reset_time = @_data.root.time.Now()
-        @_info.value = @_info.initial
-        @_data.write(@_info.key, @_info)
-
-      readWriteCallback: (result) ->
-        switch result.status
-          when 'nonexistent'
-            @initialize()
-          when 'read', 'write'
-            @_info = result.value
-            @checkTimeout()
-          else
-            null
-
-        if not @_initialized
-          if @initCallback then @initCallback(@)
-          @_initialized = true
-
-      checkTimeout: ->
-        if @_info.timeout? and (@_info.timeout_type=='instant' or not @_initialized)
-          tNextReset = @_info.reset_time + @_info.timeout
-          if @_data.root.time.Now() >= tNextReset then @reset()
-
-      get: -> @_info.value
-
-      set: (value) ->
-        @_info.value = value
-
-        @_data.write @_info.key, @_info,
-          callback: (result) => @readWriteCallback(result)
-
-        @
-
+          target.attr 'l', @root.width()-target.attr('width')-pad
+          arrow = @root.show.Text "→",
+            l: (prompt[0].attr('l')+prompt[0].attr('width')+target.attr('l'))/2
+            "font-size": 72
+          [prompt[0], prompt[1], target, arrow]
 
   Session: -> new MWClassSession(@)
   MWClassSession: class MWClassSession extends MWClass
+    timer: null
+
+    sessions_finished: null
+
+    trialsPerBlock: 10
+
+    _started: false
+
+    _blockType: null
+    _trialsLeftInBlock: 0
+
     constructor: (root) ->
       super root
 
+      @timer = objPath(@,'root','el','status','el','timer')
+
+      @sessions_finished = @root.data.Variable "sessions_finished", 0
+
+    stopTimer: -> if @timer? then @timer.stop()
+
+    startTimer: -> if @timer? then @timer.go()
+
+    remaining: -> if @timer? then @timer.remaining() else null
+
     run: ->
+      if not @_started
+        @start()
+      else if @remaining()>0
+        @step()
+      else
+        @finish()
 
+    step: ->
+      if @_trialsLeftInBlock==0
+        @_trialsLeftInBlock = @trialsPerBlock
 
+        games = @root.game.gameNames
+        trialsFinished = (@root.game[game].trials_finished.get() for game in games)
+        minTF = Math.min(trialsFinished...)
+        possibleBlocks = (game for game,idx in games when trialsFinished[idx]==minTF)
 
+        @_blockType = pickFrom(possibleBlocks)
+
+        @root.action.dialog "You will now begin a block of #{capitalize(@_blockType)} trials.",
+          type: 'ok'
+          callback: => @step()
+      else
+        @_trialsLeftInBlock--
+        mwl.game[@_blockType].trial null,
+          callback: (shw) => @run()
+
+    start: ->
+      @_started = true
+
+      @base.action.dialog "Hi, #{capitalize(@base.user)}! Welcome to Session #{@sessions_finished.get()+1}!\n \nSee the menu on the left if you need help.\n \nThe timer in the upper left shows how much\ntime is remaining in the session.",
+        type: 'ok'
+        callback: => @run()
+
+    finish: ->
+      @sessions_finished.set @sessions_finished.get()+1
+
+      @base.action.dialog "Session #{@sessions_finished.get()} finished!\nYou will now be logged out.",
+          type: 'ok'
+          callback: => @base.action.logout()

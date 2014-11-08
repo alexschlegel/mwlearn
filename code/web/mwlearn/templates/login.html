@@ -1,0 +1,39 @@
+{% extends "base/blank.html" %}
+
+{% load static %}
+
+{% block style %}
+	<link type="text/x-scss" rel="stylesheet" href="{% static "mwlearnapp/style/login.scss" %}" />
+{% endblock style %}
+
+{% block body %}
+	<div class="login_outer"><div class="login_middle"><div class="login_inner">
+		<div class="title">Welcome to Your Better Brain!</div>
+
+		{% if form.errors %}
+		<div class="error">Your username and password didn't match. Please try again.</div>
+		{% endif %}
+
+		<form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+			{% csrf_token %}
+
+			<div class="pure-g row">
+				<div class="pure-u-1-4 label">{{ form.username.label_tag }}&nbsp;</div>
+				<div class="pure-u-3-4 field">{{ form.username }}</div>
+			</div>
+			<div class="pure-g row">
+				<div class="pure-u-1-4 label">{{ form.password.label_tag }}&nbsp;</div>
+				<div class="pure-u-3-4 field">{{ form.password }}</div>
+			</div>
+
+			<input class="button" type="submit" value="login" />
+			<input type="hidden" name="next" value="{{ next }}" />
+		</form>
+	</div></div></div>
+{% endblock body %}
+
+{% block script %}
+	<script type="text/coffeescript">
+		$(document).ready -> $('#id_username').focus()
+	</script>
+{% endblock script %}
