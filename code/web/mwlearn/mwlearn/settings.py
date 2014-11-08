@@ -97,10 +97,10 @@ DATABASES = {
 
 # Auth
 
-#AUTH_USER_MODEL = 'mwlearnapp.User'
+AUTH_USER_MODEL = 'auth.User'
 
 LOGIN_URL = 'account-login'
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'experiment'
 LOGOUT_URL = 'account-logout'
 
 # Static files (CSS, JavaScript, Images)
