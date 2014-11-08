@@ -82,7 +82,7 @@ if ME == ME_DEV:
 elif ME == ME_TEST:
 	DB_USER = 'tselab'
 else:
-	raise Exception('Where am I?')
+	raise Exception("Where am I ? ({0})".format(ME))
 
 DATABASES = {
     'default': {
