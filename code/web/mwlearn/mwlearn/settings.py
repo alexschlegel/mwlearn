@@ -16,7 +16,7 @@ from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS, \
 
 #set some stuff based on where we are
 ME_DEV = 'grendel'
-ME_TEST = 'fechner'
+ME_TEST = 'wertheimer'
 ME = platform.node()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -34,7 +34,7 @@ else:
 TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = [
-	'fechner.dartmouth.edu',
+	'wertheimer.dartmouth.edu',
 	'localhost',
 ]
 

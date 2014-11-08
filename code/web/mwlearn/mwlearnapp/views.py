@@ -2,17 +2,14 @@ import json
 
 from django.http import HttpResponse
 from django.views.generic.base import TemplateView
-from django.contrib.auth.views import logout, login
+from django.contrib.auth.decorators import login_required
 
 from mwlearnapp import data
 
-
+@login_required
 def data_view(request):
-	if request.method=='GET':
-		result = data.process_request(request.GET)
-		return HttpResponse(json.dumps(result), mimetype='application/json')
-	else:
-		return 'hi'
+	result = data.process_request(request)
+	return HttpResponse(json.dumps(result), mimetype='application/json')
 
 
 class Home(TemplateView):
@@ -28,12 +25,4 @@ class Experiment(TemplateView):
 
 	def get_context_data(self, **kwargs):
 		context = super(Experiment, self).get_context_data(**kwargs)
-		return context
-
-
-class AccountLogin(TemplateView):
-	template_name = "login.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(AccountLogin, self).get_context_data(**kwargs)
 		return context

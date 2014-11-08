@@ -1,4 +1,4 @@
-#!/home/alex/studies/mwlearn/code/web/mwlearnenv/bin/python
+#!/home/alex/studies/mwlearn/code/web/mwlearnenv/bin/python3
 from django.core import management
 
 if __name__ == "__main__":
