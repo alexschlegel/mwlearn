@@ -1,6 +1,6 @@
 window.doDebug = ->
   #alert obj2str(mwl.data._local_datastore)
-  mwl.data.failSafe()
+  alert mwl.time.Now()
 
 window.obj2str = (obj, indent=0) ->
   if obj? and (typeof obj=='object')
@@ -179,7 +179,8 @@ window.squareGrid = (n) ->
 window.MWLearn = class MWLearn
   base: null
 
-  user: 'bob'
+  user: null
+  csrf: null
 
   type: null
   container: null
@@ -235,6 +236,10 @@ window.MWLearn = class MWLearn
     options = merge defaults, options
 
     @debug = options.debug
+
+    @user = options.user
+    @csrf = options.csrf
+
     @container = options.container
     @background = options.background
 
@@ -277,6 +282,7 @@ window.MWLearn = class MWLearn
       when 'status'
         @el.timer = @show.Timer options.practice_time ? convertTime(25,'minute','ms'),
           name: timerName
+          timeout: msPerT('dayminus10minutes')
           initialize: false
           color: 'gray'
           l: 10
@@ -306,7 +312,9 @@ window.MWLearn = class MWLearn
       images = options.images.concat imConstruct
       if images.length then @LoadImages(images)
 
-    if options.run_session then @queue.add 'session_run', @session.run
+    if options.run_session then @queue.add 'session_run', => @session.run()
+
+    @ready(true)
 
   width: -> @paper.width
   height: -> @paper.height
@@ -315,6 +323,8 @@ window.MWLearn = class MWLearn
   ready: (state=null) ->
     if state?
       @_ready = state
+      if @_ready then @queue.do()
+
       if @type=='experiment'
         @el.status.ready(state)
         @el.history.ready(state)
@@ -434,8 +444,8 @@ window.MWLearn = class MWLearn
 
     logout: ->
       @root.queue.clear()
-      @root.data.save()
-      @root.queue.add 'logout', (=> window.location = '/logout')
+      @root.data.save
+        callback: (=> window.location = '/logout/')
 
   Show: -> new MWClassShow(@)
   MWClassShow: class MWClassShow extends MWClass
@@ -737,7 +747,7 @@ window.MWLearn = class MWLearn
                 when "t"
                   @root.height()/2
                 else
-                  #nothing
+                  throw 'wtf?'
             else
               ret = pCur = Math.min (el.attr(name) for el in @element)...
 
@@ -765,7 +775,7 @@ window.MWLearn = class MWLearn
                 when 'show', 'mousedown', 'mouseup', 'mouseover', 'mouseout'
                   @updateBackground(name)
                 else
-                  #nothing
+                  null
             else
               ret = if @element.length>0 then @element[@_defaultElement].attr(name) else null
 
@@ -1289,6 +1299,7 @@ window.MWLearn = class MWLearn
       prefix: null
       suffix: null
 
+      _timeout: null
       _initialized: false
       _intervalID: null
 
@@ -1306,6 +1317,8 @@ window.MWLearn = class MWLearn
         @suffix = options.suffix ? 'remaining'
         @tUpdate = options.update_interval ? (if @showms then 10 else 250)
 
+        @_timeout = options.timeout ? null
+
         super root, '', options
 
         if options.initialize then @initialize()
@@ -1314,7 +1327,8 @@ window.MWLearn = class MWLearn
       initialize: ->
         if not @_initialized
           @tTimer = @base.data.Variable "#{@name}_remaining", @tTotal,
-            timeout: msPerT('dayminus10minutes')
+            timeout: @_timeout
+            callback: (t) => @render()
 
           @_initialized = true
 
@@ -1325,6 +1339,8 @@ window.MWLearn = class MWLearn
           Math.max(0,if @tGo? then (@tTimer.get()-(@root.time.Now()-@tGo)) else @tTimer.get())
         else
           0
+
+      nextReset: -> @tTimer.nextReset()
 
       string: ->
         strTime = time2str(@remaining(),@showms)
@@ -2843,7 +2859,7 @@ window.MWLearn = class MWLearn
               @storeStimulus s, idx
 
               if @contain then s.contain()
-              s.show(true)
+              s.show(true) #***
             else if s instanceof Function
               @parseStimulus s(@, idx), idx
             else if Array.isArray(s)
@@ -2938,12 +2954,13 @@ window.MWLearn = class MWLearn
 
     _failed: false
     _failSafeExecuted: false
+    _failSafeCallback: null
 
     constructor: (root, options={}) ->
       super root
 
       @timeout = options.timeout ? 10000
-      @_local = options.local ? not @root.type=='experiment'
+      @_local = options.local ? not (@root.type=='experiment')
 
       @_local_datastore = {}
       @_archive = {}
@@ -2968,28 +2985,36 @@ window.MWLearn = class MWLearn
       else
         @unblock()
 
-    save: () ->
-      @block('saving data')
+    save: (options={}) ->
+      options.callback = options.callback ? null
+      options.previous_failure = options.previous_failure ? @_failed
 
-      previousFailure = @_failed
+      @block('saving data')
 
       for key of @_local_datastore
         @_numBusy++
         @write key, @_local_datastore[key],
           store: false
-          callback: (result) => @saveCallback(result, previousFailure)
+          callback: (result) => @saveCallback(result, options)
 
       for key of @_archive
-        for id of @_archive[key]
+        for time of @_archive[key]
           @_numBusy++
           @archive key,
             store: false
-            id: id
-            callback: (result) => @saveCallback(result, previousFailure)
+            time: time
+            callback: (result) => @saveCallback(result, options)
 
-    saveCallback: (result, previousFailure) ->
-      if not result.success and previousFailure then @failSafe()
-      @unblock()
+    saveCallback: (result, options) ->
+      if options.callback?
+        @root.queue.add 'save_callback', => options.callback()
+
+      if not result.success and options.previous_failure
+        @failSafe
+          callback: => @unblock()
+      else
+
+        @unblock()
 
     block: (description) ->
       @_numBusy = 0
@@ -3004,8 +3029,11 @@ window.MWLearn = class MWLearn
         @root.queue.do 'data_block'
 
     ajax: (data, options) ->
+      data.csrfmiddlewaretoken = @base.csrf
+
       $.ajax
-        url: '/data'
+        type: 'POST'
+        url: '/data/'
         data: data
         success: (result) => @["#{data.action}Callback"](result, options)
         error: (jqXHR, status, err) => @failure()
@@ -3047,10 +3075,10 @@ window.MWLearn = class MWLearn
 
       #write locally
       if options.store
-        newKey = not key of @_local_datastore
+        newKey = not (key of @_local_datastore)
         @_local_datastore[key] = value
         if newKey then @write 'keys', Object.keys(@_local_datastore),
-          store: false
+            store: false
 
       if @_local
         result = {
@@ -3076,12 +3104,12 @@ window.MWLearn = class MWLearn
     archive: (key, options={}) ->
       options.store = options.store ? true
       options.callback = options.callback ? null
-      options.id = options.id ? @root.time.Now()
+      options.time = options.time ? @root.time.Now()
 
       #archive locally
       if options.store
         if not (key of @_archive) then @_archive[key] = {}
-        @_archive[key][options.id] = @_local_datastore[key]
+        @_archive[key][options.time] = @_local_datastore[key]
 
       if @_local
         result = {
@@ -3089,14 +3117,14 @@ window.MWLearn = class MWLearn
           action: 'archive'
           key: key
           status: 'archive'
-          id: options.id
+          time: options.time
         }
         window.setTimeout (=> @archiveCallback(result, options)), 0
       else
         data = {
           action: 'archive'
           key: key
-          id: options.id
+          time: options.time
           value: JSON.stringify(@_local_datastore[key])
         }
 
@@ -3108,8 +3136,9 @@ window.MWLearn = class MWLearn
 
     failure: -> @_failed = true
 
-    failSafe: ->
+    failSafe: (options) ->
       if not @_failSafeExecuted
+        @_failSafeCallback = options.callback ? null
         @_failSafeExecuted = true
 
         failSafeData = "#{JSON.stringify(@_local_datastore)}\n\n#{JSON.stringify(@_archive)}"
@@ -3124,7 +3153,12 @@ window.MWLearn = class MWLearn
 
         $('#failsafe_mailto').attr("href", "mailto:schlegel@gmail.com?subject=#{mailSubject}&body=#{mailBody}")
         $('#failsafe').show()
-        #***don't continue until closed
+      else
+        if options.callback then options.callback()
+
+    failSafeHide: ->
+      $('#failsafe').hide()
+      if @_failSafeCallback? then @_failSafeCallback()
 
     Variable: (key, value, options={}) -> new MWClassDataVariable(@, key, value, options)
     MWClassDataVariable: class MWClassDataVariable
@@ -3149,12 +3183,15 @@ window.MWLearn = class MWLearn
             timeout_type: one of the following:
               'session': value will only reset in between sessions
               'instant': value will reset immediately after timeout
+            callback: a function that takes the variable as an input and is
+              called after the variable is initialized
         ###
         @_data = data
 
         @track = options.track ? false
         options.timeout = options.timeout ? null
         options.timeout_type = options.timeout_type ? 'session'
+        options.callback = options.callback ? null
 
         @_key = key
         @_value = {value:value}
@@ -3163,11 +3200,11 @@ window.MWLearn = class MWLearn
           @_value.timeout = options.timeout
           @_value.timeout_type = options.timeout_type
 
-        @update()
+        @update(options)
 
-      update: ->
+      update: (options={}) ->
         @_data.read @_key,
-          callback: (result) => @dataCallback(result)
+          callback: (result) => @dataCallback(result, options)
 
       initialize: ->
         if @_value.timeout? then @_value.initial = @_value.value
@@ -3180,7 +3217,9 @@ window.MWLearn = class MWLearn
         else
           @set @_value.value
 
-      dataCallback: (result) ->
+      dataCallback: (result, options={}) ->
+        options.callback = options.callback ? null
+
         if result.success
           switch result.status
             when 'nonexistent'
@@ -3189,7 +3228,7 @@ window.MWLearn = class MWLearn
               @_value = result.value
               @checkTimeout()
             when 'write'
-              if @track then @_data.archive @_key,
+              if @track and @get()? then @_data.archive @_key,
                 callback: (result) => @dataCallback(result)
               @checkTimeout()
             when 'archive'
@@ -3199,10 +3238,13 @@ window.MWLearn = class MWLearn
 
           if not @_initialized then @_initialized = true
 
+          if options.callback? then options.callback(@)
+
       checkTimeout: ->
         if @_value.timeout? and (@_value.timeout_type=='instant' or not @_initialized)
-          tNextReset = @_value.reset_time + @_value.timeout
-          if @_data.root.time.Now() >= tNextReset then @reset()
+          if @_data.root.time.Now() >= @nextReset() then @reset()
+
+      nextReset: -> if @_value.timeout? then @_value.reset_time + @_value.timeout else null
 
       get: -> @_value.value
 
@@ -3451,6 +3493,7 @@ window.MWLearn = class MWLearn
           next.push ['mouse']
           idx++
 
+        #***
         shw = @root.exec.Show "#{@name}_tutorial_intro", stim, next,
           description: "#{capitalize(@name)} tutorial introduction"
 
@@ -3464,7 +3507,7 @@ window.MWLearn = class MWLearn
           description: "a practice #{capitalize(@name)} trial"
 
       tutorialPrompt: ->
-        @root.show.YesNo 'Continue?',
+        @root.show.YesNo 'Try another trial?',
           callback: (response) => @tutorialStep(response)
 
       tutorialEnd: -> @root.visible false
@@ -3551,10 +3594,12 @@ window.MWLearn = class MWLearn
           parts = @prompt figure
           parts.attr 't', pad
           figure.attr 't', @root.height()-figure.attr('height')-pad
+          text = @root.show.Instructions 'Construct the parts in this order.',
+            color: 'gray'
           arrow = @root.show.Text "↓",
             t: (figure.attr('t')+parts.attr('t'))/2
             "font-size": 72
-          stim = [parts, figure, arrow]
+          stim = [parts, figure, text, arrow]
           for idx in [0..3]
             stim.push @root.show.Text idx+1,
               "font-size": 32
@@ -3691,17 +3736,15 @@ window.MWLearn = class MWLearn
     MWClassGameRotate: class MWClassGameRotate extends MWClassGameBase
       nDistractor: 1
 
-      path: [
-        [['M',.692,.607],['C',.694,.6,.7,.591,.704,.586,.707,.581,.714,.571,.718,.564,.723,.554,.727,.549,.735,.542,.742,.535,.745,.532,.746,.527,.748,.516,.763,.48,.77,.466,.786,.435,.804,.407,.811,.4,.819,.393,.82,.393,.83,.403],['L',.836,.41,.83,.419],['C',.825,.428,.823,.439,.825,.448,.827,.455,.831,.454,.837,.444,.847,.426,.859,.411,.877,.39,.887,.379,.896,.368,.898,.366,.9,.363,.9,.337,.898,.314,.897,.308,.898,.298,.9,.291,.906,.263,.905,.235,.894,.201,.887,.18,.878,.164,.862,.146],['L',.862,.146],['C',.849,.132,.845,.129,.83,.128,.822,.127,.821,.127,.817,.121,.812,.114,.812,.114,.809,.117,.806,.12,.803,.119,.798,.116,.791,.113,.789,.113,.787,.117,.786,.122,.782,.121,.778,.114,.776,.111,.768,.1,.759,.089,.751,.077,.741,.065,.738,.06,.731,.051,.729,.051,.717,.057,.71,.06,.709,.061,.709,.064,.71,.067,.709,.067,.704,.067,.7,.068,.697,.069,.693,.073,.69,.075,.685,.079,.682,.081,.665,.091,.659,.101,.657,.119,.655,.135,.649,.163,.646,.165,.644,.168,.646,.192,.649,.196,.654,.201,.657,.216,.655,.231,.654,.244,.653,.25,.646,.264,.639,.28,.638,.281,.626,.292,.614,.304,.61,.306,.567,.328,.542,.341,.517,.355,.512,.358,.502,.364,.501,.365,.486,.365,.448,.367,.426,.373,.402,.39,.392,.397,.389,.4,.385,.406,.383,.41,.377,.417,.372,.422,.363,.43,.362,.43,.35,.432,.335,.434,.32,.433,.315,.431,.311,.429,.309,.429,.307,.432,.305,.434,.301,.436,.299,.436],['S',.285,.444,.272,.452],['L',.248,.466,.226,.468],['C',.208,.47,.203,.471,.201,.474,.2,.476,.192,.482,.183,.489,.165,.503,.162,.508,.153,.532,.15,.542,.146,.55,.143,.552,.141,.554,.139,.558,.138,.561,.136,.565,.134,.568,.127,.573,.119,.579,.118,.581,.114,.591,.111,.597,.108,.604,.107,.606,.105,.61,.088,.623,.071,.635],['L',.063,.641,.069,.648],['C',.073,.652,.075,.656,.075,.658,.074,.664,.079,.672,.091,.68,.103,.689,.111,.691,.121,.69,.126,.689,.128,.69,.132,.694,.136,.698,.136,.701,.136,.706],['L',.136,.713,.112,.732,.089,.752,.09,.759],['C',.09,.762,.09,.769,.091,.774,.091,.782,.091,.782,.102,.795,.109,.803,.114,.809,.114,.81,.114,.812,.115,.813,.122,.817,.126,.82,.128,.82,.13,.818,.132,.816,.137,.815,.141,.815,.148,.815,.15,.814,.155,.808,.16,.802,.166,.789,.169,.778,.17,.773,.171,.771,.176,.768,.18,.765,.181,.764,.18,.761,.178,.754,.187,.735,.196,.729,.2,.727,.204,.726,.214,.727,.227,.728,.228,.728,.234,.734,.239,.74,.241,.741,.246,.741,.254,.74,.26,.748,.259,.757,.259,.761,.259,.765,.26,.767,.263,.773,.266,.793,.265,.803,.264,.811,.264,.812,.273,.824,.285,.84,.286,.848,.281,.858,.278,.862,.275,.867,.273,.869,.27,.872,.27,.873,.273,.882,.274,.887,.277,.892,.279,.893,.281,.895,.283,.899,.284,.903,.287,.911,.293,.918,.305,.926,.315,.932,.315,.932,.323,.928,.33,.924,.331,.924,.337,.914,.341,.908,.346,.9,.35,.896,.354,.891,.356,.887,.355,.886,.354,.885,.355,.883,.37,.864,.378,.854,.385,.847,.392,.842,.398,.837,.41,.826,.42,.817,.44,.798,.477,.773,.497,.763,.51,.757,.547,.734,.577,.713,.592,.702,.594,.701,.606,.699,.64,.691,.665,.664,.692,.607],['Z'],['M',.825,.19],['C',.824,.19,.822,.188,.821,.187,.819,.185,.817,.183,.816,.18,.816,.178,.816,.176,.817,.175,.818,.173,.821,.172,.824,.173,.826,.174,.828,.176,.828,.178,.829,.18,.828,.182,.828,.184,.827,.186,.827,.189,.825,.19],['Z'],['M',.49,.683,.494,.684,.494,.686,.485,.697,.477,.707,.471,.711,.456,.725,.47,.709,.472,.708,.472,.702,.475,.698,.478,.693,.481,.686,.49,.683],['Z'],['M',.394,.776,.38,.782,.369,.79,.361,.798,.353,.805,.348,.806,.341,.809,.334,.813,.328,.806,.325,.791,.322,.777,.324,.765,.325,.76,.33,.753,.336,.752,.342,.757,.35,.762,.36,.761,.367,.762,.378,.767,.387,.767,.394,.769,.408,.767,.408,.767,.409,.77,.407,.773,.394,.776],['Z']]
-        [['M',.958,.288],['S',.928,.275,.912,.254],['C',.895,.233,.855,.219,.855,.219,.859,.213,.869,.209,.894,.217,.86,.195,.845,.188,.823,.18,.809,.175,.808,.187,.798,.175,.789,.165,.784,.157,.777,.15,.762,.134,.756,.133,.745,.143,.746,.144,.747,.144,.749,.145,.747,.147,.746,.151,.746,.154,.748,.151,.75,.149,.753,.147,.756,.148,.758,.15,.759,.151,.757,.153,.755,.155,.755,.158,.757,.156,.76,.155,.763,.154,.766,.156,.768,.158,.769,.161,.767,.162,.765,.163,.763,.165,.766,.164,.769,.164,.772,.164,.774,.167,.775,.17,.777,.172,.774,.173,.772,.175,.771,.177,.773,.176,.776,.176,.778,.176,.78,.178,.781,.181,.782,.183,.778,.184,.777,.187,.776,.19,.778,.188,.78,.187,.785,.189,.786,.192,.787,.194,.789,.196,.787,.197,.785,.198,.783,.201,.786,.2,.788,.199,.792,.2,.798,.206,.805,.209,.815,.211,.801,.218,.791,.219,.781,.213,.782,.211,.783,.209,.785,.208,.783,.208,.78,.209,.778,.211,.777,.21,.777,.21,.776,.209,.774,.207,.772,.206,.771,.204,.772,.202,.774,.201,.777,.2,.774,.2,.771,.2,.768,.201,.766,.198,.764,.196,.762,.193,.763,.191,.765,.19,.768,.189,.765,.189,.762,.189,.759,.19,.757,.187,.756,.185,.754,.183,.755,.18,.757,.178,.76,.177,.756,.177,.753,.178,.751,.179,.749,.177,.748,.176,.746,.174,.747,.171,.749,.169,.752,.168,.747,.168,.744,.169,.742,.171,.741,.17,.739,.17,.738,.169,.738,.167,.738,.164,.741,.16,.736,.161,.734,.164,.732,.167,.731,.167,.731,.167,.73,.167,.725,.18,.712,.176,.711,.191,.711,.191,.721,.179,.74,.189,.759,.199,.78,.222,.779,.241,.778,.251,.784,.26,.789,.267,.791,.246,.81,.25,.813,.267,.816,.284,.791,.297,.765,.286,.738,.276,.629,.221,.574,.261,.405,.356,.608,.502,.502,.579,.452,.615,.374,.583,.333,.566,.301,.553,.286,.535,.28,.508,.268,.456,.325,.453,.344,.469,.361,.484,.39,.515,.378,.571,.394,.58,.41,.583,.425,.584,.431,.534,.427,.52,.413,.475,.375,.353,.227,.388,.218,.464,.211,.513,.218,.569,.301,.628,.352,.665,.426,.686,.498,.675,.497,.685,.499,.697,.515,.715,.513,.693,.513,.682,.52,.671,.533,.668,.545,.664,.555,.659,.557,.668,.563,.679,.582,.691,.574,.672,.572,.661,.574,.65,.586,.643,.597,.635,.606,.627,.611,.635,.62,.644,.642,.649,.628,.633,.622,.623,.621,.611,.629,.602,.636,.592,.64,.582,.649,.587,.661,.59,.685,.582,.665,.576,.655,.571,.647,.562,.65,.55,.651,.537,.65,.522,.659,.522,.67,.519,.686,.504,.667,.507,.656,.507,.647,.503,.644,.491,.64,.477,.633,.464,.641,.461,.65,.456,.66,.443,.644,.447,.634,.449,.626,.447,.62,.435,.615,.423,.612,.412,.62,.412,.631,.409,.646,.397,.626,.398,.616,.397,.606,.392,.605,.387,.604,.382,.603,.376,.601,.361,.615,.341,.621,.332,.625,.339,.633,.348,.651,.355,.64,.338,.636,.328,.636,.316,.65,.308,.669,.305,.686,.309,.681,.317,.677,.329,.683,.352,.691,.332,.696,.322,.707,.315,.718,.319,.728,.321,.739,.323,.736,.332,.735,.344,.743,.362,.748,.344,.751,.334,.759,.326,.783,.329,.805,.326,.822,.315,.825,.332,.82,.35,.804,.375,.831,.347,.845,.323,.848,.293,.865,.309,.878,.338,.876,.372,.891,.343,.886,.312,.864,.277,.88,.284,.907,.306,.917,.351,.916,.308,.896,.276,.874,.26,.874,.26,.89,.25,.909,.269,.925,.284,.958,.288,.958,.288],['Z'],['M',.834,.195],['C',.826,.198,.817,.197,.815,.193,.813,.191,.815,.186,.819,.189,.822,.191,.826,.195,.834,.195],['Z'],['M',.407,.679],['C',.393,.677,.386,.677,.356,.666,.356,.666,.312,.716,.24,.707,.173,.699,.123,.745,.119,.819,.117,.816,.114,.815,.109,.819,.102,.826,.101,.876,.146,.928,.125,.878,.13,.852,.14,.842,.146,.836,.144,.828,.139,.821,.137,.818,.134,.817,.131,.819,.15,.747,.189,.74,.25,.744,.322,.749,.376,.725,.407,.679],['Z']]
-        #TODO add rest of rotate shapes
-      ]
+      path: window._rotate_paths
 
       skillInit: 45
       skillStep: 1
       skillMin: 0
       skillMax: 89
       skillName: 'precision'
+
+      tOperate: 4000
 
       constructor: (root) -> super root, 'rotate'
 
@@ -3745,9 +3788,9 @@ window.MWLearn = class MWLearn
           prompt[0].attr 'l', pad
           prompt[1].attr 'x', prompt[0].attr('x')
 
-          target.attr 'l', @root.width()-target.attr('width')-pad
+          target.attr 'l', @root.width()-target.rotatedWidth()-pad
           arrow = @root.show.Text "→",
-            l: (prompt[0].attr('l')+prompt[0].attr('width')+target.attr('l'))/2
+            l: (prompt[0].attr('l')+prompt[0].rotatedWidth()+target.attr('l'))/2
             "font-size": 72
           [prompt[0], prompt[1], target, arrow]
 
@@ -3777,9 +3820,16 @@ window.MWLearn = class MWLearn
 
     remaining: -> if @timer? then @timer.remaining() else null
 
+    currentSession: -> @sessions_finished.get()+1
+
+    nextSessionTime: -> if @timer? then @timer.nextReset() else null
+
     run: ->
       if not @_started
-        @start()
+        if @remaining()==0
+          @abort('toosoon')
+        else
+          @start()
       else if @remaining()>0
         @step()
       else
@@ -3807,13 +3857,25 @@ window.MWLearn = class MWLearn
     start: ->
       @_started = true
 
-      @base.action.dialog "Hi, #{capitalize(@base.user)}! Welcome to Session #{@sessions_finished.get()+1}!\n \nSee the menu on the left if you need help.\n \nThe timer in the upper left shows how much\ntime is remaining in the session.",
+      @base.action.dialog "Hi, #{capitalize(@base.user)}! Welcome to Session #{@currentSession()}!\n \nSee the menu on the left if you need help.\n \nThe timer in the upper left shows how much\ntime is remaining in the session.",
         type: 'ok'
         callback: => @run()
 
     finish: ->
       @sessions_finished.set @sessions_finished.get()+1
 
-      @base.action.dialog "Session #{@sessions_finished.get()} finished!\nYou will now be logged out.",
+      @base.action.dialog "Session #{@currentSession()-1} finished!\nYou will now be logged out.",
+          type: 'ok'
+          callback: => @base.action.logout()
+
+    abort: (reason) ->
+      prompt = switch reason
+        when 'toosoon'
+          t = new Date(@nextSessionTime())
+          "Please wait until\n#{t.toLocaleDateString()} at #{t.toLocaleTimeString()}\nto start session #{@currentSession()}."
+        else
+          throw ('Invalid abort reason')
+
+      @base.action.dialog "#{prompt}\nYou will now be logged out.",
           type: 'ok'
           callback: => @base.action.logout()
