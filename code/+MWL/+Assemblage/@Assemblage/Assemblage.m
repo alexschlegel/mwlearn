@@ -1,7 +1,8 @@
 classdef Assemblage < handle
 % Assemblage
 %
-% Description:	object for constructing and rendering assemblage stimuli 
+% Description:	object for constructing and rendering assemblage stimuli. this
+%				is a port of the coffeescript version.
 %
 % Syntax: a = Assemblage(ptb,<options>)
 %

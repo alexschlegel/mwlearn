@@ -1,7 +1,7 @@
 classdef GridOp < PTB.Object
 % GridOp
 %
-% Description:	the gridop experiment object 
+% Description:	the gridop experiment object used in mwlearn
 %
 % Syntax: go = GridOp(<options>)
 %
@@ -17,8 +17,8 @@ classdef GridOp < PTB.Object
 %
 % Out: 
 %
-% Updated: 2013-08-23
-% Copyright 2013 Alex Schlegel (schlegel@gmail.com).  This work is licensed
+% Updated: 2014-11-10
+% Copyright 2014 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
 
@@ -69,7 +69,7 @@ classdef GridOp < PTB.Object
 			end
 			
 			opt.name	= 'gridop';
-			opt.context	= switch2(opt.session,1,'psychophysics',2,'fmri');
+			opt.context	= 'fmri';
 			opt.tr		= GO.Param('time','tr');
 			
 			%window
@@ -86,8 +86,31 @@ classdef GridOp < PTB.Object
 			%initialize the experiment
 			go.Experiment	= PTB.Experiment(cOpt{:});
 			
+			% get existing subjects
+			global strDirData
+			cSubjectFiles	= FindFiles(strDirData, '^\w\w\w?\w?\.mat$');
+			
 			%set the session
-			go.Experiment.Info.Set('go','session',opt.session);
+				subInit	= go.Experiment.Info.Get('subject','init');
+				% check whether a subject file exists for this experiment
+				bPreDefault	= ~any(strcmp(cSubjectFiles,PathUnsplit(strDirData, subInit, 'mat')));
+				kSession	= NaN;
+				go.Experiment.Scheduler.Pause;  % so the prompt doesn't get covered by log entries
+				while isnan(kSession)
+					strSession = go.Experiment.Prompt.Ask('Select session:',...
+						'choice',{'pre','post'},'default', ...
+						conditional(bPreDefault,'pre','post'));
+					switch strSession
+						case 'pre'
+							kSession	= 1;
+						case 'post'
+							kSession	= 2;
+						otherwise
+							continue
+					end
+				end
+				go.Experiment.Scheduler.Resume;
+				go.Experiment.Info.Set('go','session',kSession);
 			
 			%start
 			go.Start;

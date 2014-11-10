@@ -23,8 +23,7 @@ bContinue	= true;
 while bContinue
 	nPractice	= nPractice + 1;
 	
-	yn	= go.Experiment.Show.Prompt('Show the shape/operation mapping?','choice',{'y','n'},'default','n');
-	if isequal(yn,'y')
+	if go.YesNo('Show the shape/operation mapping?')
 		go.Mapping;
 	end
 	
@@ -41,10 +40,9 @@ while bContinue
 	nCorrectC	= sum(bCorrectC);
 	
 	strPerformance	= ['You were correct on ' num2str(nCorrectC) ' of the last ' num2str(nCount) ' trial' plural(nCount,'','s') '.'];
-	strLog			= ['History: ' join(arrayfun(@(k) chrLog{k},double(bCorrectC)+1,'uni',false),' ') ' (' num2str(nPractice) ' total)'];
+	strLog			= ['<size:0.5>History: ' join(arrayfun(@(k) chrLog{k},double(bCorrectC)+1,'uni',false),' ') ' (' num2str(nPractice) ' total)</size>'];
 	
-	yn			= go.Experiment.Show.Prompt([strResponse '\n\n' strPerformance '\n' strLog '\n\nAgain?'],'choice',{'y','n'});
-	bContinue	= isequal(yn,'y');
+	bContinue	= go.YesNo([strResponse '\n\n' strPerformance '\n' strLog '\n\nAgain?']);
 end
 
 %save the results

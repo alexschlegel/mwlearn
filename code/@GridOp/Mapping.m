@@ -24,7 +24,7 @@ opt	= ParseArgs(varargin,...
 	cStim	= arrayfun(@(k) GO.Stim.Stimulus(k,'map',mapStim),(1:4)','uni',false);
 
 %open a texture
-	sTexture	= switch2(go.Experiment.Info.Get('go','session'),1,800,2,1000);
+	sTexture	= 1000;
 	go.Experiment.Window.OpenTexture('mapping',[sTexture sTexture]);
 %show the stimuli
 	go.Experiment.Show.Text('<size:1><color:marigold>shapes</color></size>',[0 -3.5],'window','mapping');
@@ -48,6 +48,9 @@ opt	= ParseArgs(varargin,...
 
 %show the instructions screen
 	if opt.wait
+		%so we can track button presses
+			go.Experiment.Scanner.StartScan;
+		
 		fResponse	= [];
 		strPrompt	= [];
 	else
@@ -61,6 +64,11 @@ opt	= ParseArgs(varargin,...
 					'fresponse'	, fResponse	, ...
 					'prompt'	, strPrompt	  ...
 					);
+	
+	if opt.wait
+		%stop looking for button presses
+			go.Experiment.Scanner.StopScan;
+	end
 
 %remove the texture
 	go.Experiment.Window.CloseTexture('mapping');
