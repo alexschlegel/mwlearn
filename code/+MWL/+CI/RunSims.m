@@ -3,12 +3,11 @@ function res = RunSims
 %
 % Run simulations to test PsychoCurve.
 
-nCore = 12;
+nCore = 11;
 
 dLevel = 0:0.1:1; 
 b = (1:10)';
 reps = 1000;
-
 dLevelRep = repmat(dLevel, numel(b), 1);
 bRep = repmat(b, 1, numel(dLevel));
 
@@ -24,13 +23,13 @@ res.errThresh = errThresh;
 res.maxTrials = maxTrials;
 res.runsPerCond = reps;
 
-surf(dLevelRep, bRep, cell2mat(trials2thresh));
+surf(dLevelRep, bRep, cell2mat(res.trials2thresh));
 
 
     function [trials2thresh, tError, bError] = DoSimulation(d,b)
         trials2thresh = 0;
-        tError = zeros(maxTrials);
-        bError = zeros(maxTrials);
+        tError = zeros(maxTrials,1);
+        bError = zeros(maxTrials,1);
         for k = 1:reps
             [curtError,curbError,~,currt2t] = MWL.CI.Simulate(d, b, 'noise', noise, ...
            'errThresh', errThresh, 'maxTrials', maxTrials, 'plot', false);

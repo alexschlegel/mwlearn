@@ -1,0 +1,14 @@
+mwlt=MWLearnTest;
+tic;
+mwlt.RunCI;
+ciTime=toc/60;
+mwlt.Experiment.Info.Set('mwlt',{'ci','time'},ciTime);
+tic;
+mwlt.RunAngle;
+angleTime=toc/60;
+mwlt.Experiment.Info.Set('mwlt',{'angle','time'},angleTime);
+tic;
+mwlt.RunWM;
+wmTime = toc/60;
+mwlt.Experiment.Info.Set('mwlt',{'wm','time'},wmTime);
+mwlt.End;

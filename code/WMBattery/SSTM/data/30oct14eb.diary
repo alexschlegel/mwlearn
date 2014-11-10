@@ -1,0 +1,742 @@
+log saving to: "/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/data/30oct14eb.log"
+diary saving to: "/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/data/30oct14eb.diary"
+2014-10-30 14:31:02/63581985062174.094 | event: log              | info: started
+
+
+PTB-INFO: This is Psychtoolbox-3 for GNU/Linux X11, under Matlab 64-Bit (Version 3.0.11 - Build date: Dec 29 2013).
+PTB-INFO: Type 'PsychtoolboxVersion' for more detailed version information.
+PTB-INFO: Most parts of the Psychtoolbox distribution are licensed to you under terms of the MIT License, with
+PTB-INFO: some restrictions. See file 'License.txt' in the Psychtoolbox root folder for the exact licensing conditions.
+
+PTB-INFO: Many graphics cards do not support proper timing and timestamping of visual stimulus onset
+PTB-INFO: when running in windowed mode (non-fullscreen). If PTB aborts with 'Synchronization failure'
+PTB-INFO: you can disable the sync test via call to Screen('Preference', 'SkipSyncTests', 2); .
+PTB-INFO: You won't get proper stimulus onset timestamps though, so windowed mode may be of limited use.
+PTB-INFO: Advanced Micro Devices, Inc. [AMD/ATI] - RV730 XT [Radeon HD 4670] GPU found. Trying to establish low-level access...
+PTB-INFO: Connected to Advanced Micro Devices, Inc. [AMD/ATI] RV730 XT [Radeon HD 4670] GPU with AVIVO display engine [2 heads]. Beamposition timestamping enabled.
+PTB-INFO: Failed to enable realtime-scheduling [Operation not permitted]!
+PTB-INFO: You need to run Matlab or Octave with root-privileges, or run the script PsychLinuxConfiguration once for this to work.
+PTB-INFO: Failed to enable realtime-scheduling [Operation not permitted]!
+PTB-INFO: You need to run Matlab or Octave with root-privileges, or run the script PsychLinuxConfiguration once for this to work.
+
+
+PTB-INFO: OpenGL-Renderer is X.Org :: Gallium 0.4 on AMD RV730 :: 3.0 Mesa 10.1.3
+PTB-INFO: VBL startline = 1080 , VBL Endline = 1123
+PTB-INFO: Measured monitor refresh interval from beamposition = 16.665940 ms [60.002615 Hz].
+PTB-INFO: Will try to use OS-Builtin OpenML sync control support for accurate Flip timestamping.
+PTB-INFO: Measured monitor refresh interval from VBLsync = 16.665945 ms [60.002598 Hz]. (50 valid samples taken, stddev=0.000536 ms.)
+PTB-INFO: Reported monitor refresh interval from operating system = 16.666667 ms [60.000000 Hz].
+PTB-INFO: Small deviations between reported values are normal and no reason to worry.
+PTB-INFO: Support for fast OffscreenWindows enabled.
+2014-10-30 14:31:06/63581985066764.891 | event: window           | info: opened main
+2014-10-30 14:31:07/63581985067944.953 | event: flip             | info: show start
+
+mwlt = 
+
+  <a href="matlab:helpPopup MWLearnTest" style="font-weight:bold">MWLearnTest</a> with properties:
+
+    Experiment: [1x1 PTB.Experiment]
+        parent: []
+      children: {}
+          type: 'mwlearntest'
+
+mwlt.RunWM
+{Error using <a href="matlab:helpUtils.errorDocCallback('cd')" style="font-weight:bold">cd</a>
+Cannot CD to WMBattery/ (Name is nonexistent or not a
+directory).
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWL.WM.Run', '/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m', 15)" style="font-weight:bold">MWL.WM.Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m',15,0)">line 15</a>)
+cd(DirAppend(strDirCode, 'WMBattery'));
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/Run', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m', 30)" style="font-weight:bold">MWLearnTest/Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m',30,0)">line 30</a>)
+        MWL.WM.Run(mwlt);
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/RunWM', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m', 2)" style="font-weight:bold">MWLearnTest/RunWM</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m',2,0)">line 2</a>)
+mwlt.Run('wm');} 
+pwd
+
+ans =
+
+/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM
+
+cd ../../..
+mwlt.RunWM
+{Error using <a href="matlab:helpUtils.errorDocCallback('cd')" style="font-weight:bold">cd</a>
+Cannot CD to WMBattery/ (Name is nonexistent or not a
+directory).
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWL.WM.Run', '/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m', 15)" style="font-weight:bold">MWL.WM.Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m',15,0)">line 15</a>)
+cd(DirAppend(strDirCode, 'WMBattery'));
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/Run', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m', 30)" style="font-weight:bold">MWLearnTest/Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m',30,0)">line 30</a>)
+        MWL.WM.Run(mwlt);
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/RunWM', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m', 2)" style="font-weight:bold">MWLearnTest/RunWM</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m',2,0)">line 2</a>)
+mwlt.Run('wm');} 
+cd cod
+{Error using <a href="matlab:helpUtils.errorDocCallback('cd')" style="font-weight:bold">cd</a>
+Cannot CD to cod (Name is nonexistent or not a
+directory).
+} 
+cd code
+mwlt.RunWM
+PsychtoolboxVersion: WARNING - Could not query additional version information from SVN -- svn tools not properly installed?!?
+a1
+a1
+a1
+a1
+a1
+a1
+{Operation terminated by user during <a href="matlab:helpUtils.errorDocCallback('GetMouse', '/home/tselab/matlab/R2013a/toolbox/Psychtoolbox/PsychBasic/GetMouse.m', 204)" style="font-weight:bold">GetMouse</a> (<a href="matlab: opentoline('/home/tselab/matlab/R2013a/toolbox/Psychtoolbox/PsychBasic/GetMouse.m',204,0)">line 204</a>)
+
+
+In <a href="matlab:helpUtils.errorDocCallback('Response', '/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/Response.m', 73)" style="font-weight:bold">Response</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/Response.m',73,0)">line 73</a>)
+         [MPos(1,1) MPos(1,2)
+         botton]=GetMouse(WindowPtr);
+
+In <a href="matlab:helpUtils.errorDocCallback('SSTM', '/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/SSTM.m', 159)" style="font-weight:bold">SSTM</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/SSTM.m',159,0)">line 159</a>)
+        [RecAns,RT]=Response(screenparms,Trial,NumIndex,Dot,Text,Board,AdjH,AdjV,w);
+        
+In <a href="matlab:helpUtils.errorDocCallback('WMCBattery', '/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/WMCBattery.m', 157)" style="font-weight:bold">WMCBattery</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/WMCBattery.m',157,0)">line 157</a>)
+        [rc, SSTMData, SSTMDataSum] =
+        SSTM(subject,screenparms);
+
+In <a href="matlab:helpUtils.errorDocCallback('MWL.WM.Run', '/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m', 20)" style="font-weight:bold">MWL.WM.Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m',20,0)">line 20</a>)
+[MUData, OSData, SSData, SSTMData, SSTMSumData] = ...
+
+In <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/Run', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m', 30)" style="font-weight:bold">MWLearnTest/Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m',30,0)">line 30</a>)
+        MWL.WM.Run(mwlt);
+
+In <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/RunWM', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m', 2)" style="font-weight:bold">MWLearnTest/RunWM</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m',2,0)">line 2</a>)
+mwlt.Run('wm');} 
+mwlt.End
+log saving to: "/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/data/30oct14eb.log"
+diary saving to: "/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/data/30oct14eb.diary"
+2014-10-30 14:33:42/63581985222922.445 | event: log              | info: started
+PTB-INFO: Failed to enable realtime-scheduling [Operation not permitted]!
+PTB-INFO: You need to run Matlab or Octave with root-privileges, or run the script PsychLinuxConfiguration once for this to work.
+PTB-INFO: Failed to enable realtime-scheduling [Operation not permitted]!
+PTB-INFO: You need to run Matlab or Octave with root-privileges, or run the script PsychLinuxConfiguration once for this to work.
+2014-10-30 14:33:46/63581985226118.289 | event: window           | info: opened main
+2014-10-30 14:33:47/63581985227371.453 | event: flip             | info: show start
+2014-10-30 14:33:47/63581985227971.430 | event: flip             | info: prompt
+{Error using <a href="matlab:helpUtils.errorDocCallback('cd')" style="font-weight:bold">cd</a>
+Cannot CD to WMBattery/ (Name is nonexistent or not a
+directory).
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWL.WM.Run', '/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m', 15)" style="font-weight:bold">MWL.WM.Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m',15,0)">line 15</a>)
+cd(DirAppend(strDirCode, 'WMBattery'));
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/Run', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m', 30)" style="font-weight:bold">MWLearnTest/Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m',30,0)">line 30</a>)
+        MWL.WM.Run(mwlt);
+
+Error in <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/RunWM', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m', 2)" style="font-weight:bold">MWLearnTest/RunWM</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m',2,0)">line 2</a>)
+mwlt.Run('wm');} 
+sca
+cd ../..
+    hOffset = (rect_screen(3)-rect_screen(4))/2;
+{Undefined function 'rect_screen' for input arguments of
+type 'double'.
+} 
+mwlt.Emnd
+{No appropriate method, property, or field Emnd for
+class MWLearnTest.
+} 
+mwlt.End
+Error in function Close: 	Invalid Window (or Texture) Index provided: It doesn't correspond to an open window or texture.
+Did you close it accidentally via Screen('Close') or Screen('CloseAll') ?
+log saving to: "/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/data/30oct14eb.log"
+diary saving to: "/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/data/30oct14eb.diary"
+2014-10-30 14:34:52/63581985292932.398 | event: log              | info: started
+PTB-INFO: Failed to enable realtime-scheduling [Operation not permitted]!
+PTB-INFO: You need to run Matlab or Octave with root-privileges, or run the script PsychLinuxConfiguration once for this to work.
+PTB-INFO: Failed to enable realtime-scheduling [Operation not permitted]!
+PTB-INFO: You need to run Matlab or Octave with root-privileges, or run the script PsychLinuxConfiguration once for this to work.
+2014-10-30 14:34:56/63581985296082.453 | event: window           | info: opened main
+2014-10-30 14:34:57/63581985297818.438 | event: flip             | info: show start
+2014-10-30 14:34:58/63581985298501.742 | event: flip             | info: prompt
+2014-10-30 14:34:59/63581985299323.406 | event: show             | info: prompt ended
+a1
+a1
+a1
+a1
+a1
+{Operation terminated by user during <a href="matlab:helpUtils.errorDocCallback('GetMouse', '/home/tselab/matlab/R2013a/toolbox/Psychtoolbox/PsychBasic/GetMouse.m', 196)" style="font-weight:bold">GetMouse</a> (<a href="matlab: opentoline('/home/tselab/matlab/R2013a/toolbox/Psychtoolbox/PsychBasic/GetMouse.m',196,0)">line 196</a>)
+
+
+In <a href="matlab:helpUtils.errorDocCallback('Response', '/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/Response.m', 73)" style="font-weight:bold">Response</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/Response.m',73,0)">line 73</a>)
+         [MPos(1,1) MPos(1,2)
+         botton]=GetMouse(WindowPtr);
+
+In <a href="matlab:helpUtils.errorDocCallback('SSTM', '/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/SSTM.m', 159)" style="font-weight:bold">SSTM</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/SSTM/SSTM.m',159,0)">line 159</a>)
+        [RecAns,RT]=Response(screenparms,Trial,NumIndex,Dot,Text,Board,AdjH,AdjV,w);
+        
+In <a href="matlab:helpUtils.errorDocCallback('WMCBattery', '/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/WMCBattery.m', 157)" style="font-weight:bold">WMCBattery</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/WMCBattery.m',157,0)">line 157</a>)
+        [rc, SSTMData, SSTMDataSum] =
+        SSTM(subject,screenparms);
+
+In <a href="matlab:helpUtils.errorDocCallback('MWL.WM.Run', '/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m', 20)" style="font-weight:bold">MWL.WM.Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/+MWL/+WM/Run.m',20,0)">line 20</a>)
+[MUData, OSData, SSData, SSTMData, SSTMSumData] = ...
+
+In <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/Run', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m', 30)" style="font-weight:bold">MWLearnTest/Run</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/Run.m',30,0)">line 30</a>)
+        MWL.WM.Run(mwlt);
+
+In <a href="matlab:helpUtils.errorDocCallback('MWLearnTest/RunWM', '/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m', 2)" style="font-weight:bold">MWLearnTest/RunWM</a> (<a href="matlab: opentoline('/mnt/tsestudies/wertheimer/mwlearn/code/@MWLearnTest/RunWM.m',2,0)">line 2</a>)
+mwlt.Run('wm');} 
+sca
+
+help textread
+ <strong>textread</strong> Read formatted data from text file.
+     A = <strong>textread</strong>('FILENAME')
+     A = <strong>textread</strong>('FILENAME','',N)
+     A = <strong>textread</strong>('FILENAME','',param,value, ...)
+     A = <strong>textread</strong>('FILENAME','',N,param,value, ...) reads numeric data from
+     the file FILENAME into a single variable.  If the file contains any
+     text data, an error is produced.
+ 
+     [A,B,C, ...] = <strong>textread</strong>('FILENAME','FORMAT')
+     [A,B,C, ...] = <strong>textread</strong>('FILENAME','FORMAT',N)
+     [A,B,C, ...] = <strong>textread</strong>('FILENAME','FORMAT',param,value, ...)
+     [A,B,C, ...] = <strong>textread</strong>('FILENAME','FORMAT',N,param,value, ...) reads
+     data from the file FILENAME into the variables A,B,C,etc.  The type of
+     each return argument is given by the FORMAT string.  The number of
+     return arguments must match the number of conversion specifiers in the
+     FORMAT string.  If there are fewer fields in the file than in the
+     format string, an error is produced.  See FORMAT STRINGS below for
+     more information.
+ 
+     If N is specified, the format string is reused N times.  If N is -1 (or
+     not specified) <strong>textread</strong> reads the entire file.
+ 
+     If param,value pairs are supplied, user configurable options customize
+     the behavior of <strong>textread</strong>.  See USER CONFIGURABLE OPTIONS below.
+ 
+     <strong>textread</strong> works by matching and converting groups of characters from the
+     file. An input field is defined as a string of non-whitespace
+     characters extending to the next whitespace or delimiter character
+     or until the field width is exhausted.  Repeated delimiter characters
+     are significant while repeated whitespace characters are treated as
+     one.
+ 
+     FORMAT STRINGS
+ 
+     If the FORMAT string is empty, <strong>textread</strong> will only numeric data.
+ 
+     The FORMAT string can contain whitespace characters (which are
+     ignored), ordinary characters (which are expected to match the next
+     non-whitespace character in the input), or conversion specifications.
+ 
+     Supported conversion specifications:
+         %n - read a number - float or integer (returns double array)
+              %5n reads up to 5 digits or until next delimiter
+         %d - read a signed integer value (returns double array)
+              %5d reads up to 5 digits or until next delimiter
+         %u - read an integer value (returns double array)
+              %5u reads up to 5 digits or until next delimiter
+         %f - read a floating point value (returns double array)
+              %5f reads up to 5 digits or until next delimiter
+         %s - read a whitespace separated string (returns cellstr)
+              %5s reads up to 5 characters or until whitespace
+         %q - read a double-quoted string, ignoring the quotes (returns cellstr)
+              %5q reads up to 5 non-quote characters or until whitespace
+         %c - read character or whitespace (returns char array)
+              %5c reads up to 5 characters including whitespace
+         %[...]  - reads characters matching characters between the
+                   brackets until first non-matching character or
+                   whitespace (returns cellstr)
+                   use %[]...] to include ]
+              %5[...] reads up to 5 characters
+         %[^...] - reads characters not matching characters between the
+                   brackets until first matching character or whitespace
+                   (returns cellstr)
+                   use %[^]...] to exclude ]
+              %5[^...] reads up to 5 characters
+ 
+     Note: Format strings are interpreted as with sprintf before parsing.
+     For example, textread('mydata.dat','%s\t') will search for a tab not
+     the character '\' followed by the character 't'.  See the Language
+     Reference Guide or a C manual for complete details.
+ 
+     Using %* instead of % in a conversion causes <strong>textread</strong> to skip the
+     matching characters in the input (and no output is created for this
+     conversion).
+ 
+     The % can be followed by an optional field width to handle fixed 
+     width fields. For example %5d reads a 5 digit integer. In
+     addition the %f format supports the form %<width>.<prec>f.
+ 
+     USER CONFIGURABLE OPTIONS
+ 
+     Possible param/value options are:
+          'bufsize'      - maximum string length in bytes (default is 4095)
+          'commentstyle' - one of 
+               'matlab'  -- characters after % are ignored
+               'shell'   -- characters after # are ignored
+               'c'       -- characters between /* and */ are ignored
+               'c++'    -- characters after // are ignored
+          'delimiter'    - delimiter characters (default is none)
+          'emptyvalue'   - empty cell value in delimited files (default is 0)
+          'endofline'    - end of line character (default determined from file)
+          'expchars'     - exponent characters (default is 'eEdD')
+          'headerlines'  - number of lines at beginning of file to skip
+          'whitespace'   - whitespace characters (default is ' \b\t')
+     
+     <strong>textread</strong> is useful for reading text files with a known format.  Both
+     fixed and free format files can be handled.
+ 
+     Examples:
+      Suppose the text file mydata.dat contains data in the following form:
+         Sally    Type1 12.34 45 Yes
+         Joe      Type2 23.54 60 No
+         Bill     Type1 34.90 12 No
+           
+      Read each column into a variable
+        [names,types,x,y,answer] = textread('mydata.dat','%s%s%f%d%s');
+ 
+      Read first column into a cell array (skipping rest of line)
+        [names]=textread('mydata.dat','%s%*[^\n]')
+ 
+      Read first character into char array (skipping rest of line)
+        [initials]=textread('mydata.dat','%c%*[^\n]')
+ 
+      Read file as a fixed format file while skipping the doubles
+        [names,types,y,answer] = textread('mydata.dat','%9c%5s%*f%2d%3s');
+ 
+      Read file and match Type literal
+        [names,typenum,x,y,answer]=textread('mydata.dat','%sType%d%f%d%s');
+ 
+      Read MATLAB file into cell array of strings
+        file = textread('fft.m','%s','delimiter','\n','whitespace','');
+ 
+      To read all numeric data from a delimited text file, use a single output
+      argument, empty format string, and the appropriate delimiter. For 
+      example, suppose data.csv contains:
+        1,2,3,4
+        5,6,7,8
+        9,10,11,12
+ 
+      Read the whole matrix into a single variable:
+        [data] = textread('data.csv','','delimiter',',');
+ 
+      Read the first two columns into two variables:
+        [col1, col2] = textread('data.csv','%n%n%*[^\n]','delimiter',',');
+ 
+      For files with empty cells, use the emptyvalue parameter.  Suppose
+      data.csv contains:
+        1,2,3,4,,6
+        7,8,9,,11,12
+ 
+      Read the file like this, using NaN in empty cells:
+        [data] = textread('data.csv','','delimiter',',','emptyvalue',NaN);
+ 
+    <strong>textread</strong> is not recommended. Use TEXTSCAN instead.
+ 
+    See also <a href="matlab:help textscan">textscan</a>, <a href="matlab:help strread">strread</a>, <a href="matlab:help dlmread">dlmread</a>, <a href="matlab:help load">load</a>, <a href="matlab:help sscanf">sscanf</a>, <a href="matlab:help xlsread">xlsread</a>.
+
+    Reference page in Help browser
+       <a href="matlab:doc textread">doc textread</a>
+
+help fopen
+ <strong>fopen</strong>  Open file.
+    FID = <strong>fopen</strong>(FILENAME) opens the file FILENAME for read access.
+    FILENAME is a string containing the name of the file to be opened.  
+    (On PC systems, <strong>fopen</strong> opens files for binary read access.)
+ 
+    FILENAME can be a MATLABPATH relative partial pathname.  If the
+    file is not found in the current working directory, <strong>fopen</strong> searches for 
+    it on the MATLAB search path.  On UNIX systems, FILENAME may also start
+    with a "~/" or a "~username/", which <strong>fopen</strong> expands to the current
+    user's home directory or the specified user's home directory,
+    respectively.
+ 
+    FID is a scalar MATLAB integer valued double, called a file identifier. 
+    You use FID as the first argument to other file input/output
+    routines, such as FREAD and FCLOSE. If <strong>fopen</strong> cannot open the file, it 
+    returns -1.
+ 
+    FID = <strong>fopen</strong>(FILENAME,PERMISSION) opens the file FILENAME in the
+    mode specified by PERMISSION:
+    
+        'r'     open file for reading
+        'w'     open file for writing; discard existing contents
+        'a'     open or create file for writing; append data to end of file
+        'r+'    open (do not create) file for reading and writing
+        'w+'    open or create file for reading and writing; discard 
+                existing contents
+        'a+'    open or create file for reading and writing; append data 
+                to end of file
+        'W'     open file for writing without automatic flushing
+        'A'     open file for appending without automatic flushing
+    
+    FILENAME can be a MATLABPATH relative partial pathname only if the file
+    is opened for reading.
+ 
+    You can open files in binary mode (the default) or in text mode.
+    In binary mode, no characters get singled out for special treatment.
+    In text mode on the PC, the carriage return character preceding
+    a newline character is deleted on input and added before the newline
+    character on output.  To open a file in text mode, append 't' to the
+    permission string, for example 'rt' and 'w+t'.  (On Unix, text and
+    binary mode are the same, so this has no effect.  On PC systems
+    this is critical.)
+ 
+    If the file is opened in update mode ('+'), you must use an FSEEK or 
+    FREWIND between an input command like FREAD, FSCANF, FGETS, or FGETL 
+    and an output command like FWRITE or FPRINTF.  You must also use an 
+    FSEEK or FREWIND between an output command and an input command.
+ 
+    Two file identifiers are automatically available and need not be
+    opened.  They are FID=1 (standard output) and FID=2 (standard error).
+    
+    [FID, MESSAGE] = <strong>fopen</strong>(FILENAME,...) returns a system dependent error 
+    message if the open is not successful.
+ 
+    [FID, MESSAGE] = <strong>fopen</strong>(FILENAME,PERMISSION,MACHINEFORMAT) opens the
+    specified file with the specified PERMISSION and treats data read
+    using FREAD or data written using FWRITE as having a format given
+    by MACHINEFORMAT. MACHINEFORMAT is one of the following strings:
+ 
+    'native'      or 'n' - local machine format - the default
+    'ieee-le'     or 'l' - IEEE floating point with little-endian
+                           byte ordering
+    'ieee-be'     or 'b' - IEEE floating point with big-endian
+                           byte ordering
+    'ieee-le.l64' or 'a' - IEEE floating point with little-endian
+                           byte ordering and 64 bit long data type
+    'ieee-be.l64' or 's' - IEEE floating point with big-endian byte
+                           ordering and 64 bit long data type.
+    
+    [FID, MESSAGE] = <strong>fopen</strong>(FILENAME,PERMISSION,MACHINEFORMAT,ENCODING) 
+    opens the specified file using the specified PERMISSION and 
+    MACHINEFORMAT. ENCODING is a string that specifies the character 
+    encoding scheme associated with the file. It must be the empty 
+    string ('') or a name or alias for an encoding scheme. Some examples 
+    are 'UTF-8', 'latin1', 'US-ASCII', and 'Shift_JIS'. For common names 
+    and aliases, see the Web site 
+    <a href="matlab:web http://www.iana.org/assignments/character-sets">http://www.iana.org/assignments/character-sets</a>. If ENCODING is 
+    unspecified or is the empty string (''), MATLAB's default encoding 
+    scheme is used.
+ 
+    [FILENAME,PERMISSION,MACHINEFORMAT,ENCODING] = <strong>fopen</strong>(FID) returns the 
+    filename, permission, machine format, and character encoding values
+    used by MATLAB when it opened the file associated with identifier FID.
+    MATLAB does not determine these output values by reading information 
+    from the opened file. For any of these parameters that were not 
+    specified when the file was opened, MATLAB returns its default value. 
+    The ENCODING string is a standard character encoding scheme name that 
+    may not be the same as the ENCODING argument used in the call to <strong>fopen</strong> 
+    that opened the file. An invalid FID returns empty strings for all 
+    output arguments.
+ 
+    FIDS = <strong>fopen</strong>('all') returns a row vector containing the file 
+    identifiers for all the files currently opened by the user 
+    (but not 1 or 2).
+    
+    The 'W' and 'A' permissions do not automatically perform a flush 
+    of the current output buffer after output operations.
+    
+    See also <a href="matlab:help fclose">fclose</a>, <a href="matlab:help ferror">ferror</a>, <a href="matlab:help fgetl">fgetl</a>, <a href="matlab:help fgets">fgets</a>, <a href="matlab:help fprintf">fprintf</a>, <a href="matlab:help fread">fread</a>, <a href="matlab:help fscanf">fscanf</a>, <a href="matlab:help fseek">fseek</a>, 
+             <a href="matlab:help ftell">ftell</a>, <a href="matlab:help fwrite">fwrite</a>.
+
+    Overloaded methods:
+       <a href="matlab:help serial/fopen">serial/fopen</a>
+       <a href="matlab:help icinterface/fopen">icinterface/fopen</a>
+       <a href="matlab:help i2c/fopen">i2c/fopen</a>
+
+    Reference page in Help browser
+       <a href="matlab:doc fopen">doc fopen</a>
+
+cd ../..
+fopen('test.txt','w')
+
+ans =
+
+     4
+
+fclose(4)
+
+ans =
+
+     0
+
+cd WMBattery/MU
+trials = textread('mutrials.txt','')
+
+trials =
+
+  Columns 1 through 12
+
+     1     2     4     5     7     0     0     0     0     2     2     1
+     2     3     3     7     1     8     0     0     0     1     3     3
+     3     3     3     1     4     9     0     0     0     2     1     2
+     4     4     4     4     6     1     2     0     0     2     4     3
+     5     3     6     9     2     7     0     0     0     3     1     2
+     6     4     5     6     2     4     3     0     0     4     3     2
+     7     5     5     1     6     3     7     5     0     5     4     3
+     8     4     3     7     5     2     9     0     0     1     1     2
+     9     5     2     7     1     6     5     4     0     1     1     0
+    10     3     2     5     3     7     0     0     0     3     2     0
+    11     5     3     5     3     6     1     8     0     5     4     2
+    12     3     5     7     8     2     0     0     0     3     3     3
+    13     3     4     7     1     2     0     0     0     1     1     3
+    14     5     4     2     3     4     5     8     0     1     2     3
+    15     4     6     4     6     1     8     0     0     2     1     1
+    16     4     2     6     9     8     7     0     0     2     2     0
+    17     5     6     6     4     8     1     9     0     2     2     1
+
+  Columns 13 through 24
+
+     1     0     0     0     0    -2     3    -4     6     0     0     0
+     0     0     0     0     0    -1    -3    -1     0     0     0     0
+     0     0     0     0     0     1     6     2     0     0     0     0
+     1     0     0     0     0    -5     1     6     5     0     0     0
+     3     1     3     0     0     1    -5     2    -7     1     2     0
+     2     2     0     0     0     3     4     3     2    -6     0     0
+     1     2     0     0     0    -4    -6    -2     7     2     0     0
+     0     0     0     0     0    -1    -4    -1     0     0     0     0
+     0     0     0     0     0    -4     6     0     0     0     0     0
+     0     0     0     0     0    -5     2     0     0     0     0     0
+     0     0     0     0     0    -7     1     4     0     0     0     0
+     2     1     0     0     0     6    -7     3     1    -3     0     0
+     2     0     0     0     0     2    -4    -1     2     0     0     0
+     2     0     0     0     0     5     2    -1     3     0     0     0
+     3     1     3     0     0     3    -1     5     2     1     4     0
+     0     0     0     0     0    -5     4     0     0     0     0     0
+     3     1     3     0     0    -1     5    -4    -2     6    -4     0
+
+  Columns 25 through 36
+
+     0     2     1     0     0     0     0     7     8     0     0     0
+     0     3     1     2     0     0     0     6     1     4     0     0
+     0     3     1     2     0     0     0     7     7     9     0     0
+     0     4     1     2     3     0     0     9     1     7     3     0
+     0     2     1     3     0     0     0     5     4     3     0     0
+     0     1     2     4     3     0     0     6     1     8     6     0
+     0     3     2     4     1     5     0     8     8     1     1     1
+     0     3     2     4     1     0     0     2     4     2     9     0
+     0     5     3     4     2     1     0     9     1     6     5     4
+     0     1     3     2     0     0     0     5     5     2     0     0
+     0     5     4     1     3     2     0     5     7     6     2     1
+     0     1     2     3     0     0     0     4     9     4     0     0
+     0     2     3     1     0     0     0     5     3     1     0     0
+     0     2     1     3     4     5     0     7     8     3     5     8
+     0     2     3     4     1     0     0     9     9     7     8     0
+     0     3     4     2     1     0     0     6     8     8     7     0
+     0     3     4     1     2     5     0     8     8     2     1     9
+
+  Columns 37 through 38
+
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+     0     0
+
+help PTB.Experiment
+  <strong>PTB.Experiment</strong>
+  
+  Description:	an object to extend and simplify use of Psychtoolbox
+  
+  Syntax:	ptb = <strong>PTB.Experiment</strong>(<options>)
+  			
+ 			subfunctions:
+ 				Start(<options>):	start the object
+ 				End:				end the object
+ 				Abort:				abort the experiment
+ 				Attach:				attach a PTB.Object to the experiment
+ 
+  			subclasses:
+  				Info:		stores info accessible to all PTB classes
+ 				File:		read/write files
+ 				Subject:	get and prompt for subject info
+ 				Scheduler:	schedule execution of tasks with different
+ 							priorities
+ 				Color:		store/parse colors
+ 				Status:		show status messages
+ 				Prompt:		prompt for information
+ 				Log:		log events
+ 				Serial:		access a serial port
+ 				[Trigger]:	set and send EEG triggers
+ 				Input:		check subject input
+ 				Scanner:	query and simulate the scanner
+ 				Window:		manipulate the stimulus window
+ 				Pointer:	get the state of a pointer device
+ 				Show:		paint stimuli on the window
+ 				Sequence:	do a sequence of things
+ 				[Draw]:		handle drawing functions
+  
+  In:
+  	<options>:
+ 		name:			('<strong>Experiment</strong>') the name of the experiment
+ 		debug:			(0) a value specifying the type of debugging:
+ 							0:	none
+ 							1:	test run
+ 							2:	development
+ 		disable_key		(<true if debug==0>) true to disable the keyboard
+ 		disable_mouse:	(<true if debug==0>) true to hide the mouse
+ 		context:		('psychophysics') the experiment context.  one of the
+ 						following:
+ 							fmri:			experiment shown in the scanner
+ 							eeg:			EEG experiment
+ 							psychophysics:	psychophysics experiment
+ 		input:			(<auto>) the input type.  one of 'buttonbox',
+ 						'joystick', 'keyboard', or 'autobahx'.  defaults to
+ 						'keyboard' if debug==2 and context~=fmri.  otherwise,
+ 						defaults:
+ 							fmri:			buttonbox
+ 							eeg:			joystick
+ 							psychophysics:	joystick
+ 		pointer:		('none') the pointer type.  one of 'none', 'mouse',
+ 						'wacom', or 'magictouch'
+ 		usetrigger:		(<true if eeg>) true to include the Trigger object
+ 		usedraw:		(<true if pointer is wacom or magictouch>) true to
+ 						Include the Draw object
+ 		autosave:		(<10000 unless debug==2>) the autosave interval, in
+ 						milliseconds.  the experiment will automatically save
+ 						the info struct at this interval while idle.  set to
+ 						false to skip autosaving.
+ 		start:			(true) true to autostart
+ 		<see subclasses for more available options>
+  
+  Updated: 2012-11-26
+  Copyright 2012 Alex Schlegel (schlegel@gmail.com).  This work is licensed
+  under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
+  License.
+
+com.mathworks.jmi.MatlabException: Too many output arguments.
+help sortrows
+ <strong>sortrows</strong> Sort rows in ascending order.
+    Y = <strong>sortrows</strong>(X) sorts the rows of the matrix X in ascending order as a
+    group. X is a 2-D numeric or char matrix. For a char matrix containing
+    strings in each row, this is the familiar dictionary sort.  When X is
+    complex, the elements are sorted by ABS(X). Complex matches are further
+    sorted by ANGLE(X).  X can be any numeric or char class. Y is the same
+    size and class as X.
+ 
+    <strong>sortrows</strong>(X,COL) sorts the matrix based on the columns specified in the
+    vector COL.  If an element of COL is positive, the corresponding column
+    in X will be sorted in ascending order; if an element of COL is negative,
+    the corresponding column in X will be sorted in descending order. For 
+    example, <strong>sortrows</strong>(X,[2 -3]) sorts the rows of X first in ascending order 
+    for the second column, and then by descending order for the third
+    column.
+ 
+    [Y,I] = <strong>sortrows</strong>(X) and [Y,I] = <strong>sortrows</strong>(X,COL) also returns an index 
+    matrix I such that Y = X(I,:).
+ 
+    Notes
+    -----
+    <strong>sortrows</strong> uses a stable version of quicksort.  NaN values are sorted
+    as if they are higher than all other values, including +Inf.
+ 
+    Class support for input X:
+       numeric, logical, char
+ 
+    See also <a href="matlab:help sort">sort</a>, <a href="matlab:help issorted">issorted</a>.
+
+    Overloaded methods:
+       <a href="matlab:help ordinal/sortrows">ordinal/sortrows</a>
+       <a href="matlab:help dataset/sortrows">dataset/sortrows</a>
+
+    Reference page in Help browser
+       <a href="matlab:doc sortrows">doc sortrows</a>
+
+help samplelist
+  This program forms part of the Working Memory Capacity Battery, 
+  written by Stephan Lewandowsky, Klaus Oberauer, Lee-Xieng Yang, and Ullrich Ecker. 
+  The WMCBattery is available online at the website of the Cognitive Science
+  Laboratories of the University of Western Australia's School of Psychology:
+  <a href="matlab:web http://www.cogsciwa.com">http://www.cogsciwa.com</a> ("Software" button on main menu).
+  Conditions of Use: Using the WMCBattery is free of charge but the authors 
+  request that the associated paper be cited (add details later) 
+  when publications arise out of data collection with the WMCBattery. 
+  The authors do not guarantee the WMCBattery's functionality. 
+  This task requires Matlab version 7.5 (2007b) or higher and the 
+  Psychophysics Toolbox version 2.54 or 3.0.8. 
+
+which WaitSecs
+/home/tselab/matlab/R2013a/toolbox/Psychtoolbox/PsychBasic/WaitSecs.mexa64
+help num2cell
+ <strong>num2cell</strong> Convert numeric array into cell array.
+    C = <strong>num2cell</strong>(A) converts numeric array A into cell array C by placing
+    each element of A into a separate cell in C. The output array has the
+    same size and dimensions as the input array. Each cell in C contains
+    the same numeric value as its respective element in A.
+ 
+    C = <strong>num2cell</strong>(A, DIM) converts numeric array A into a cell array of
+    numeric vectors, the dimensions of which depend on the value of the DIM
+    argument. Return value C contains NUMEL(A)/SIZE(A,DIM) vectors, each of
+    length SIZE(A, DIM). The DIM input must be an integer with a value from
+    NDIMS(A) to 1.
+ 
+    C = <strong>num2cell</strong>(A, [DIM1, DIM2, ...]) converts numeric array A into a cell
+    array of numeric arrays, the dimensions of which depend on the values
+    of arguments [DIM1, DIM2, ...]. Given the variables X and Y, where
+    X=SIZE(A,DIM1) and Y=SIZE(A,DIM2), return value C contains
+    NUMEL(A)/PROD(X,Y,...) arrays, each of size X-by-Y-by-.... All DIMn
+    inputs must be an integer with a value from NDIMS(A) to 1.
+ 
+    <strong>num2cell</strong> works for all array types.
+ 
+    Use CELL2MAT or CAT(DIM,C{:}) to convert back.
+ 
+    See also <a href="matlab:help mat2cell">mat2cell</a>, <a href="matlab:help cell2mat">cell2mat</a>
+
+    Overloaded methods:
+       <a href="matlab:help codistributed/num2cell">codistributed/num2cell</a>
+
+    Reference page in Help browser
+       <a href="matlab:doc num2cell">doc num2cell</a>
+
+which samplelist
+/mnt/tsestudies/wertheimer/mwlearn/code/WMBattery/sharedFuns/samplelist.m
+doc num2cell
+help randperm
+ <strong>randperm</strong> Random permutation.
+    P = <strong>randperm</strong>(N) returns a vector containing a random permutation of the
+    integers 1:N.  For example, <strong>randperm</strong>(6) might be [2 4 5 6 1 3].
+ 
+    P = <strong>randperm</strong>(N,K) returns a row vector containing K unique integers
+    selected randomly from 1:N.  For example, <strong>randperm</strong>(6,3) might be [4 2 5].
+    
+    <strong>randperm</strong>(N,K) returns a vector of K unique values.  This is sometimes
+    referred to as a K-permutation of 1:N or as sampling without replacement.
+    To allow repeated values in the selection, sometimes referred to as
+    sampling with replacement, use RANDI(N,1,K).
+ 
+    <strong>randperm</strong> calls RAND and therefore changes the state of the random number
+    generator that underlies RAND, RANDI, and RANDN.  Control that shared
+    generator using RNG.
+ 
+    See also <a href="matlab:help nchoosek">nchoosek</a>, <a href="matlab:help perms">perms</a>, <a href="matlab:help rand">rand</a>, <a href="matlab:help Randi">Randi</a>, <a href="matlab:help rng">rng</a>.
+
+    Overloaded methods:
+       <a href="matlab:help RandStream/randperm">RandStream/randperm</a>
+
+    Reference page in Help browser
+       <a href="matlab:doc randperm">doc randperm</a>
+
+PTB.Celar
+{Undefined variable "PTB" or function "PTB.Celar".
+} 
+PTB.Clear
+PrepMWL
+2014-10-31 11:47:14   - base experiment directory: /mnt/tsestudies/wertheimer/mwlearn/
+2014-10-31 11:47:14   - mwlearn prepared...git er dun!
+mwlt = MWLearnTest('debug',2)
+PTB-INFO: Display ':0' : X-Screen 0 : Assigning primary output as 2 with RandR-CRTC 0 and GPU-CRTC 0.
+subject initials: eb
+session info struct saving to: "/mnt/tsestudies/wertheimer/mwlearn/data/31oct14eb.mat"
+Subject "eb" exists.  Load existing subject info? ([y],n,abort): 

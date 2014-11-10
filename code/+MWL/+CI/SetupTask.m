@@ -4,7 +4,7 @@ function [hPrompt, hTest, hFeedback, posCorrect, iAnsParts] = SetupTask(mwlt, dL
 %  Syntax: MWL.CI.SetupTask(mwlt,dLevel)
 %
 %  In:
-%       mwlt - the MWLearnTest experiment object.
+%       mwlt - the MWLearnTest object.
 %     dLevel - current difficulty level (0 -> 1)
 %
 %  Out:
@@ -86,7 +86,7 @@ mwlt.Experiment.Show.Image(ansFigures{posCorrect}, matPositions(posCorrect, :), 
                 nextPart = randi([pMin,pMax]);
             else % choose a part that allows us to reach the midpoint by the end.
                 while true
-                    nextPart = randi([rngMin, rngMax]);
+                     nextPart = randi([rngMin, rngMax]);
                     endMin = (soFar + nextPart + rngMin*(nPick-iPick))/nPick;
                     endMax = (soFar + nextPart + rngMax*(nPick-iPick))/nPick;
                     if rngMean >= endMin && rngMean <= endMax

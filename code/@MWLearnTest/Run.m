@@ -1,20 +1,26 @@
-function Run(mwlt, test)
+function Run(mwlt, test, varargin)
 % MWLearnTest.Run
 %
-% Description: run a series of mwlearn tests.
+% Description: run a mwlearn test.
 %
-% Syntax: mwlt.Run(test)
+% Syntax: mwlt.Run(test, <options>)
 %
 % In:
+%   mwlt - the MWLearnTest experiment object
 %   test - the test to run, either 'ci', 'angle', 'wm', or 'assemblage'.
+%   <options>:   
+%       lock -(true) whether to lock the keyboard until the unlock code is pressed
+%            at the end of the test(s) The unlock code is lupper + back + y
+%            on the joystick, and left + right on the keyboard.
 
-% Parse input to determine tests to run
+% Parse input
+opt = ParseArgs(varargin, 'lock',true);
 
 % set exit code
 if  strcmp(mwlt.Experiment.Info.Get('experiment','input'), 'joystick')
-    mwlt.Experiment.Input.Set('close_window', {'lupper';'back';'y'});
+    mwlt.Experiment.Input.Set('unlock', {'lupper';'back';'y'});
 else
-    mwlt.Experiment.Input.Set('close_window', {'left';'right'});
+    mwlt.Experiment.Input.Set('unlock', {'left';'right'});
 end
 
 % run test
@@ -34,8 +40,7 @@ switch test
 end
 
 % Finish up
-fClose = @()deal(mwlt.Experiment.Input.DownOnce('close_window'),false,PTB.Now);
-mwlt.Experiment.Show.Instructions('Finished! Please alert the experimenter.', ...
-     'prompt', ' ', 'fresponse', fClose);
-mwlt.Experiment.Window.Close; 
+fClose = @()deal(mwlt.Experiment.Input.DownOnce('unlock'),false,PTB.Now);
+mwlt.Experiment.Show.Instructions('Task finished! Please alert the experimenter.', ...
+     'prompt', ' ', 'fresponse', conditional(opt.lock,fClose,@()deal(true,false,PTB.Now)));
 end

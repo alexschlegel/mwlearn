@@ -1,0 +1,18 @@
+time	type	info
+63581985062174.094	log	started
+63581985066764.891	window	opened main
+63581985067944.953	flip	show start
+63581985168836.414	window	closed
+63581985169335.336	log	ended
+63581985222922.445	log	started
+63581985226118.289	window	opened main
+63581985227371.453	flip	show start
+63581985227971.430	flip	prompt
+63581985229011.789	show	prompt ended
+63581985272270.305	window	closed (Usage: Screen('Close', [windowOrTextureIndex or list of textureIndices/offscreenWindowIndices]);)
+63581985272769.047	log	ended
+63581985292932.398	log	started
+63581985296082.453	window	opened main
+63581985297818.438	flip	show start
+63581985298501.742	flip	prompt
+63581985299323.406	show	prompt ended

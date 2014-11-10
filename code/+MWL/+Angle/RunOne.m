@@ -5,63 +5,111 @@ function bResponseCorrect = RunOne(mwlt, rotStep, bPractice)
 %   Syntax: MWL.Angle.RunOne(mwlt, dLevel)
 %
 %   In:  mwlt   - the MWLearnTest object
-%        degRot - the difference in rotation between correct and incorrect
+%       rotStep - the difference in rotation between correct and incorrect
 %                 figures. Ranges from 1 (hardest) to 90 (easiest).                 
 %     bPractice - whether this is a practice trial
 %
 %   Out: bResponseCorrect  - logical indicating correctness of
 %                            response.
 
-% get the trial information
-numIm = MWL.Param('angle','image','num');
-colors = MWL.Param('angle','color');
-iImage = Randi(numIm);
-myColor = colors{Randi(numel(colors))};
-image = MWL.GetImage(mwlt, iImage, myColor);
-startAngle = Randi(360)-1;
-refAngles = MWL.Param('angle','refAngles');
-df = abs(rotStep - refAngles);
-rotAngle = refAngles(df==min(df));
-bCW = logical(Randi(2)-1); % figure is rotated clockwise
-bDistractorLeft = logical(Randi(2)-1); % incorrect figure is more CCW than correct figure
-nStepMax = floor(MWL.Param('angle','maxRotation')./rotAngle);
-nStep = Randi(nStepMax);
-degRotCorr = nStep*rotAngle*conditional(bCW,1,-1);
-degRotIncorr = degRotCorr + rotStep*conditional(bDistractorLeft,-1,1);
-bLeftCorr = logical(Randi(2)-1); % correct figure is positioned to the left
+% Set up the textures
+[hPrompt, hTest, hResponse, hFeedback, bLeftCorr] = MWL.Angle.SetupTask(mwlt, rotStep, bPractice);
+hStart = mwlt.Experiment.Window.OpenTexture('start');
+mwlt.Experiment.Show.Text('Press any key to start the trial.', 'window', 'start');
 
-% gather and save information
-persistent param;
+
+% Response buttons
+kButtonCorrect = cell2mat(mwlt.Experiment.Input.Get(conditional(bLeftCorr,'left','right')));
+
+bResponseCorrect = false;
+
+% initialize sequence
+t = MWL.Param('angle','time');
+cX = {hStart
+     hPrompt
+     {'Blank'}
+     hTest
+     hResponse
+     {@ShowFeedback, false}
+     {@ShowFeedback, true}};
+
+tShow = {@StartTrial
+         t.prompt
+         t.rotate
+         t.test
+         t.response
+         t.pause
+         t.feedback
+         };
+     
+fWait   = {@Wait_Default
+           @Wait_Default
+           @Wait_Default
+           @Wait_Response
+           @Wait_Response
+           @Wait_Default
+           @Wait_Default
+          };
+mwlt.Experiment.Log.Append('Trial begin');
+[cTrial.tStart,cTrial.tEnd,cTrial.tShow,cTrial.bAbort,cTrial.kButton,cTrial.rt] = ...
+    mwlt.Experiment.Show.Sequence(cX, tShow, 'fwait', fWait, 'tbase', 'step', 'fixation', false);
+mwlt.Experiment.Log.Append('Trial end');
+
+% Close textures
+cellfun(@(t) mwlt.Experiment.Window.CloseTexture(t), {'start','prompt','test','response','feedback'});
+
+global angleResult;
 if ~bPractice
-    trialInfo = struct('image', iImage, 'color', myColor, 'start_angle', startAngle, ...
-        'rot_angle_correct', degRotCorr, 'rot_angle_incorrect', degRotIncorr, ...
-        'pos_correct', conditional(bLeftCorr,'l','r'));
-    param(end+1) = trialInfo;
-    mwlt.Experiment.Info.Set('mwlt',{'angle','param'},param);
-    mwlt.Experiment.Log.Append('Trial parameters saved.');
+    % save data
+    cTrial.correct = bResponseCorrect;
+    if isempty(angleResult)
+        angleResult = cTrial;
+    else
+        angleResult(end+1) = cTrial;
+    end
+    mwlt.Experiment.Info.Set('mwlt', {'angle','result'}, angleResult);
+    mwlt.Experiment.Log.Append('Trial results saved.');
 end
+%-----------------------------------------------------------------------------%
+    function ShowFeedback(bGiveFeedback, varargin)
+        if bGiveFeedback  
+            if bResponseCorrect
+                mwlt.Experiment.Show.Text('<color:green><size:1.3>Yes!</size></color>', [0,0],'center',true,'window', hFeedback);
+            else
+                mwlt.Experiment.Show.Text('<color:red><size:1.3>No!</size></color>', [0,0], 'center',true,'window', hFeedback);
+            end
+        end
+        mwlt.Experiment.Show.Texture(hFeedback, varargin{:});
+    end
+%----------------------------------------------------------------------------%
+    function [bAbort, bContinue] = StartTrial(~)
+        bAbort = false;
+        bContinue = mwlt.Experiment.Input.DownOnce('any');        
+    end
+%----------------------------------------------------------------------------%
+    function [bAbort, kButton, tResponse] = Wait_Default(~,~)
+        bAbort = false;
+        kButton = [];
+        tResponse = [];
+        mwlt.Experiment.Scheduler.Wait(PTB.Scheduler.PRIORITY_CRITICAL);        
+    end
+%----------------------------------------------------------------------------%
+    function [bAbort, kButton, tResponse] = Wait_Response(tNow,~)
+        bAbort = false;        
+        [~, ~, ~, kButton] = mwlt.Experiment.Input.DownOnce('response');
+        if kButton == kButtonCorrect
+            bResponseCorrect = true;
+            tResponse = tNow;
+        elseif ~isempty(kButton)
+            bResponseCorrect = false;
+            tResponse = tNow;
+        else
+            tResponse = [];
+        end        
+        mwlt.Experiment.Scheduler.Wait(PTB.Scheduler.PRIORITY_CRITICAL);
+    end
 
-% Prepare the textures
-[~, ~, ~, screenDimVA] = mwlt.Experiment.Window.Get('main'); % screen size in visual angle
-[widthVA, heightVA] = deal(screenDimVA(1), screenDimVA(2));
-horzOffset = widthVA/4;
-% PROMPT
-hPrompt = mwlt.Experiment.Window.OpenTexture('prompt');
-mwlt.Experiment.Show.Image(image, [], heightVA/2, startAngle, 'window', 'prompt');
 
-% OPERATION
-hOp = mwlt.Experiment.Window.OpenTexture('operation');
-[strAngle, strDirection] = MWL.Angle.rot2prompt(sample.degRotCorr);
-mwlt.Experiment.Show.Text(strAngle, [0,-1.5], 'window', 'operation');
-mwlt.Experiment.Show.Text(strDirection, [0, 1.5], 'window', 'operation');
 
-% TEST
-hTest = mwlt.Experiment.Window.OpenTexture('test');
-mwlt.Experiment.Show.Image(image, [-horzOffset, 0], heightVA/2, ...
-    startAngle + conditional(bLeftCorr,degRotCorr,degRotIncorr),'window','test');
-mwlt.Experiment.Show.Image(image, [horzOffset, 0], heightVA/2, ...
-    startAngle + conditional(bLeftCorr,degRotIncorr,degRotCorr), 'window','test');
-
-% 
 end
 

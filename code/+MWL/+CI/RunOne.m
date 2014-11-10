@@ -20,8 +20,8 @@ bRecord = ~strcmp(runMode, 'practice');
 % Set up the textures.
 [hPrompt, hTest, hFeedback, posCorrect, iAnsParts] = MWL.CI.SetupTask(mwlt, dLevel);
 hStart = mwlt.Experiment.Window.OpenTexture('start');
-
 mwlt.Experiment.Show.Text('Press any key to start the trial.', 'window', 'start');
+
 % set up response buttons
 buttons = {'up','right','down','left'};
 kButtonCorrect = cell2mat(mwlt.Experiment.Input.Get(buttons{posCorrect}));
@@ -55,25 +55,28 @@ fWait   = {@Wait_Default
           };
 
 mwlt.Experiment.Log.Append('Trial begin');
-[cTrial.tStart,cTrial.tEnd,cTrial.tShow,cTrial.bAbort,cTrial.kButton,cTrial.rt] = ...
+[sTrial.tStart,sTrial.tEnd,sTrial.tShow,sTrial.bAbort,sTrial.kButton,sTrial.rt] = ...
     mwlt.Experiment.Show.Sequence(cX, tShow, 'fwait', fWait, 'tbase', 'step', 'fixation', false);
 mwlt.Experiment.Log.Append('Trial end');
 
-persistent trial;
+% Close textures
+cellfun(@(t) mwlt.Experiment.Window.CloseTexture(t), {'start','prompt','test','feedback'});
+
+global CIResult;
 if bRecord
     % save data
-    cTrial.correct = bResponseCorrect;
-    cTrial.posCorrect = posCorrect;
-    cTrial.parts = iAnsParts;
-    cTrial.level = dLevel;
+    sTrial.correct = bResponseCorrect;
+    sTrial.posCorrect = posCorrect;
+    sTrial.parts = iAnsParts;
+    sTrial.level = dLevel;
     
-    if isempty(trial)
-        trial = cTrial;
+    if isempty(CIResult)
+        CIResult = sTrial;
     else
-        trial(end+1) = cTrial;
+        CIResult(end+1) = sTrial;
     end
-    mwlt.Experiment.Info.Set('mwlt',{'ci','trial'},trial);
-    mwlt.Experiment.Log.Append('Trial data saved');
+    mwlt.Experiment.Info.Set('mwlt',{'ci','result'},CIResult);
+    mwlt.Experiment.Log.Append('Trial results saved');
 end
 %-----------------------------------------------------------------------------%
     function ShowFeedback(bGiveFeedback, varargin)
@@ -89,7 +92,7 @@ end
 %----------------------------------------------------------------------------%
     function [bAbort, bContinue] = StartTrial(~)
         bAbort = false;
-        bContinue = any(mwlt.Experiment.Input.State);        
+        bContinue = mwlt.Experiment.Input.DownOnce('any');        
     end
 %----------------------------------------------------------------------------%
     function [bAbort, kButton, tResponse] = Wait_Default(~,~)
