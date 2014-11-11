@@ -8,5 +8,6 @@ function RunAssemblage(mwlt, varargin)
 %   <options>:
 %       lock -(true) whether to lock the keyboard at the end of the test, until the
 %             unlock code is pressed on the input device (see mwlt.Run)
+
 opt = ParseArgs(varargin, 'lock',true);
 mwlt.Run('assemblage','lock',opt.lock);

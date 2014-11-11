@@ -36,7 +36,7 @@ switch test
         MWL.WM.Run(mwlt);
     case 'assemblage'
         mwlt.Experiment.Info.Set('mwlt',{'tests','assemblage'}, true);
-        MWL.Assemblage.Run(mwlt);
+        MWL.Assemblage.Run(mwlt);        
 end
 
 % Finish up

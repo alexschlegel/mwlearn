@@ -65,7 +65,7 @@ sSPx = mwlt.Experiment.Window.va2px(sS);
 str	= 'In this test, you will mentally construct figures from their parts.';
 fig = Figure_Example(parts{1}, figures{1});
 mwlt.Experiment.Show.Instructions(str,'figure',fig);
-   mwlt.Experiment.Window.CloseTexture(fig);
+mwlt.Experiment.Window.CloseTexture(fig);
 
 %describe constructing
 str	= 'You will see four parts.\nPut the parts together in your head,\nstarting with the upper right and going clockwise.';

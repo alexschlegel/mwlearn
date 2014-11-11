@@ -62,9 +62,8 @@ tt=0;
 stop=0;
 RecAns=zeros(NumDot,2);
 RecSec=zeros(NumDot,1);
-[~,~,winOrigins] = GetMonitorInfo;
-windowOrigin = winOrigins(end,:);
-SetMouse(windowOrigin(1) + round(400*AdjH), windowOrigin(2) + round(300*AdjV));
+SetMouse(round(400*AdjH),round(300*AdjV), 1);
+ShowCursor('Arrow',1);
 
 t1=GetSecs;
 % Start the response process
@@ -152,4 +151,4 @@ while ~stop
     end;
 end;
 RT=max(RecSec)-t1-tt-ttt;
-HideCursor;
+HideCursor(1);

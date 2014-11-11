@@ -36,6 +36,7 @@ cX      = {hStart
            hTest
           {@ShowFeedback, false}
           {@ShowFeedback, true}
+          {'Blank'}
           };
 
 tShow   = {@StartTrial
@@ -44,12 +45,14 @@ tShow   = {@StartTrial
            t.test
            t.pause
            t.feedback
+           t.prepare
           };
 
 fWait   = {@Wait_Default
            @Wait_Default
            @Wait_Default
            @Wait_Response
+           @Wait_Default
            @Wait_Default
            @Wait_Default
           };
