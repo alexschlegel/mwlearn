@@ -15,17 +15,19 @@ function bResponseCorrect = RunOne(mwlt, dLevel, varargin)
 runMode = ParseArgs(varargin, 'test');
 bRecord = ~strcmp(runMode, 'practice');
 
-% set up the textures / prompts
+%initialize the trial result
+sTrial	= struct;
 
-[hPrompt, tPrompt, hTest, hFeedback, posCorrect ... any other necessary information
-    ] = MWL.Assemblage.SetupTask(mwlt, dLevel);
+% set up the textures / prompts
+[hPrompt, tPrompt, hTest, hFeedback, sTrial.posCorrect, sTrial.assemblages] = MWL.Assemblage.SetupTask(mwlt, dLevel);
+
 
 hStart = mwlt.Experiment.Window.OpenTexture('start');
 mwlt.Experiment.Show.Text('Press any key to start the trial.', 'window', 'start');
 
 % set up response buttons
 buttons = {'up','right','down','left'};
-kButtonCorrect = cell2mat(mwlt.Experiment.Input.Get(buttons{posCorrect}));
+kButtonCorrect = cell2mat(mwlt.Experiment.Input.Get(buttons{sTrial.posCorrect}));
 
 bResponseCorrect = false; %initially
 
@@ -61,8 +63,9 @@ global AssemblageResult;
 
 if bRecord
     % save data
-    sTrial.correct = bResponseCorrect;
-    % more results...    
+    sTrial.correct	= bResponseCorrect;
+    sTrial.level	= dLevel;
+    
     if isempty(AssemblageResult)
         AssemblageResult = sTrial;
     else

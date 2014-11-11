@@ -6,7 +6,7 @@ function Run(mwlt)
 % Syntax: MWL.Assemblage.Run(mwlt)
 
 % clear residual global variables
-clear global AssembleResult;
+clear global AssemblageResult;
 
 % switch to lrud input scheme
 if strcmp(mwlt.Experiment.Info.Get('experiment','input'), 'joystick')
@@ -34,7 +34,7 @@ if numPractice > 0
     mwlt.Experiment.Show.Instructions(['You will now have ' num2str(numPractice) ...
         ' practice trial' plural(numPractice, '', 's') '.']);
     for nPractice = 1:numPractice
-        MWL.CI.RunOne(mwlt, dLevelPractice(1)+round((nPractice-1)*dLPracticeStep), 'practice');
+        MWL.Assemblage.RunOne(mwlt, dLevelPractice(1)+round((nPractice-1)*dLPracticeStep), 'practice');
     end
 end
 
@@ -56,7 +56,7 @@ p.Run('itmin',numTrial, 'itmax',numTrial, 'silent', true);
 mwlt.Experiment.Info.Set('mwlt',{'assemblage','psychoCurve'},p);
 
 % clear global variables again
-clear global AssembleResult;
+clear global AssemblageResult;
 
     function bResponseCorrect = NextTrial(x)
         d = 1-x;
