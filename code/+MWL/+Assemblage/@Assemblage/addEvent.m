@@ -26,7 +26,8 @@ switch eventType
 		el	= a.part(info);
 		instruct	= sprintf('Remove the %s',el.naturaLocation);
 	case 'rotate'
-		instruct	= ['Rotate the ' a.naturalName() ' ' naturalangle(info)];
+		%instruct	= ['Rotate the ' a.naturalName() ' ' naturalangle(info)];
+		instruct	= ['Rotate ' naturalangle(info)];
 	otherwise
 		error('Invalid event type');
 end
