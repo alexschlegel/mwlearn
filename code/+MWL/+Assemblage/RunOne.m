@@ -19,8 +19,7 @@ bRecord = ~strcmp(runMode, 'practice');
 sTrial	= struct;
 
 % set up the textures / prompts
-[hPrompt, tPrompt, hTest, hFeedback, sTrial.posCorrect, sTrial.assemblages] = MWL.Assemblage.SetupTask(mwlt, dLevel);
-
+[hPrompt, tPrompt, hTest, hFeedback, sTrial.posCorrect, sTrial.assemblage] = MWL.Assemblage.SetupTask(mwlt, dLevel);
 
 hStart = mwlt.Experiment.Window.OpenTexture('start');
 mwlt.Experiment.Show.Text('Press any key to start the trial.', 'window', 'start');
@@ -38,6 +37,7 @@ cX = {hStart
      hTest
      {@ShowFeedback, false}
      {@ShowFeedback, true}
+     {'Blank'}
      };
  
 tShow = {@StartTrial
@@ -45,11 +45,13 @@ tShow = {@StartTrial
         t.test
         t.pause
         t.feedback
+        t.prepare
         };
     
 fWait = {@Wait_Default
         @Wait_Default
         @Wait_Response
+        @Wait_Default
         @Wait_Default
         @Wait_Default
         };

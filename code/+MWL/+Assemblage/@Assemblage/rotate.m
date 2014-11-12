@@ -29,6 +29,12 @@ a.rotation	= mod(a.rotation + ang,360);
 		el	= parts{kP};
 		el.param.grid	= round(RotatePoints(el.param.grid,d2r(ang)));
 	end
+	
+	gridX	= cellfun(@(part) part.param.grid(1), parts);
+	gridY	= cellfun(@(part) part.param.grid(2), parts);
+	
+	a.grid.min	= [min(gridX) min(gridY)];
+	a.grid.max	= [max(gridX) max(gridY)];
 
 %add the event
 	a.addEvent('rotate',ang);

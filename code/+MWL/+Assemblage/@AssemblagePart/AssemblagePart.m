@@ -13,14 +13,14 @@ classdef AssemblagePart < handle
 %				part:
 %			
 %			methods:
-%				rotate:	DONE
-%				side2direction:	DONE
-%				naturalLocation:	DONE
-%				naturalRelativeLocation:	DONE
-%				naturalOrientation:	DONE
-%				naturalName:	DONE
-%				naturalDefinition:	DONE
-%				Show:	***
+%				rotate:	
+%				side2direction:	
+%				naturalLocation:	
+%				naturalRelativeLocation:	
+%				naturalOrientation:	
+%				naturalName:	
+%				naturalDefinition:	
+%				Image:	
 %
 % In:
 %	ptb		- the PTB object that will show the assemblage part

@@ -19,39 +19,40 @@ classdef Assemblage < handle
 %				
 %			
 %			methods:
-%				rotate:	DONE
-%				numParts:	DONE
-%				numSteps:	DONE
-%				part: 	DONE
-%				partElementIndex:	DONE
-%				addEvent:	DONE
-%				addPart:	DONE
-%				addSet:	DONE
-%				getSet:	DONE
-%				addRandom:	DONE
-%				naturalName:	DONE
-%				getUniqueParts:	DONE
-%				getOccupiedPositions:	DONE
-%				getAllParts:	DONE
-%				findPart:	DONE
-%				findOpenConnections:	DONE
-%				partCount:	DONE
-%				pickPart:	DONE
-%				pickSide:	DONE
-%				pickAppendage:	DONE
-%				findReplacementsGivenParts:	DONE
-%				findReplacements:	DONE
-%				pickReplacement:	DONE
-%				createDistractor:	DONE
-%				createDistractors:	DONE
-%				ShowInstruction:	***
+%				rotate:	
+%				numParts:	
+%				numSteps:	
+%				part: 	
+%				partElementIndex:	
+%				addEvent:	
+%				addPart:	
+%				addSet:	
+%				getSet:	
+%				addRandom:	
+%				naturalName:	
+%				getUniqueParts:	
+%				getOccupiedPositions:	
+%				getAllParts:	
+%				findPart:	
+%				findOpenConnections:	
+%				partCount:	
+%				pickPart:	
+%				pickSide:	
+%				pickAppendage:	
+%				findReplacementsGivenParts:	
+%				findReplacements:	
+%				pickReplacement:	
+%				createDistractor:	
+%				createDistractors:	
+%				Image:	
+%				ShowInstruction:	
 %				Show:	***
 %
 % In:
 %	ptb		- the PTB object that will show the assemblage
 %	[opt]	- a struct of options
 %
-% Updated: 2014-11-10
+% Updated: 2014-11-12
 % Copyright 2014 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
