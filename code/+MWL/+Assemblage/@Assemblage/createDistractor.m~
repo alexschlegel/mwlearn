@@ -51,6 +51,6 @@ nExclude	= numel(opt.exclude);
 %create the distractor
 	optA	= rmfield(opt,'exclude');
 	
-	distractor	= MWL.Assemblage.Assemblage(a.ptb,optA);
+	distractor	= MWL.Assemblage.Assemblage(optA);
 	distractor.addSet(setParam)
 	distractor.rotate(a.rotation/90);

@@ -25,5 +25,5 @@ function replacementParts = findReplacements(a,param)
 
 %expand to all parts
 	if numel(replacementParts)==0
-		replacementParts	= a.findReplacementsGivenParts(param,a.possibleParts);
+		replacementParts	= a.findReplacementsGivenParts(param,a.possibleParts)
 	end
