@@ -34,7 +34,8 @@ end
 
 % choose param struct
 strTest = varargin{1};
-cField = varargin(~ismember(varargin,strTest));
+firstEl = [true false(1,nargin-1)];
+cField = varargin(~firstEl);
 switch strTest
     case 'ci'
         if(isempty(CIP))
@@ -234,7 +235,7 @@ end
 			);
 		AssemblageP.size	= struct(...
 			'figure'		, 8	, ...
-			'offset'		, 10	  ...
+			'offset'		, 10 ...
 			);
     end
 %-----------------------------------------------------------------------%
