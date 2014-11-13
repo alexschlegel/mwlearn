@@ -88,8 +88,8 @@ end
     function InitializeCIP
         %--experiment parameters---------------------------------   
         CIP.numTrial = 30;
-        CIP.numPractice = 2;
-        CIP.dLevelPractice = 0.05;        
+        CIP.numPractice = 3;
+        CIP.dLevelPractice = 0;        
         CIP.time = struct(...
             'prompt'    , 2000, ...
             'construct' , 6000, ...
