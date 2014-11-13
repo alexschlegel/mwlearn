@@ -48,7 +48,7 @@ if ~bPractice
         angleParam(end+1) = trialInfo;
     end
     mwlt.Experiment.Info.Set('mwlt',{'angle','param'},angleParam);
-    mwlt.Experiment.Log.Append('Trial parameters saved.');
+    mwlt.Experiment.AddLog('Trial parameters saved.');
 end
 
 % Prepare the textures

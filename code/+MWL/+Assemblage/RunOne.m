@@ -56,10 +56,8 @@ fWait = {@Wait_Default
         @Wait_Default
         };
 
-mwlt.Experiment.Log.Append('Trial begin');
 [sTrial.tStart,sTrial.tEnd,sTrial.tShow,sTrial.bAbort,sTrial.kButton,sTrial.rt] = ...
     mwlt.Experiment.Show.Sequence(cX, tShow, 'fwait', fWait, 'tbase', 'step', 'fixation', false);
-mwlt.Experiment.Log.Append('Trial end');
 
 global AssemblageResult;
 
@@ -75,7 +73,7 @@ if bRecord
     end
     
     mwlt.Experiment.Info.Set('mwlt',{'assemblage','result'},AssemblageResult);
-    mwlt.Experiment.Log.Append('Trial results saved');
+    mwlt.Experiment.AddLog('Trial results saved');
 end
 
 %-----------------------------------------------------------------------------%
