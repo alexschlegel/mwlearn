@@ -77,6 +77,7 @@ classdef GridOp < PTB.Object
 				opt.text_color	= GO.Param('color','text');
 				opt.text_size	= GO.Param('text','size');
 				opt.text_family	= GO.Param('text','font');
+                opt.skipsynctests = true;
 			
 			opt.input_scheme	= 'lr';
 			
