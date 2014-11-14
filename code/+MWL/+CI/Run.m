@@ -9,11 +9,9 @@
 clear global CIResult;
 
 % switch to lrud input scheme
-if strcmp(mwlt.Experiment.Info.Get('experiment','input'), 'joystick')
-    mwlt.Experiment.Input.Set('left', 'x');
-    mwlt.Experiment.Input.Set('right', 'b');
-end
 mwlt.Experiment.Input.Set('response',{'left','right','up','down'});
+
+mwlt.Experiment.Scheduler.Pause;    % avoid conflicting with input
 
 ShowInstructions(mwlt);
 
@@ -28,28 +26,49 @@ if numPractice > 0
     end
 end
 
+
 mwlt.Experiment.Show.Instructions('The experiment will now begin.');
+
+mwlt.Experiment.Scheduler.Resume;
 
 % PsychoCurve parameters
 a = MWL.Param('ci','psychocurve','targetFracCorrect');
 g = MWL.Param('ci','psychocurve','baselineFracCorrect');
 xstep = MWL.Param('ci','psychocurve','xstep');
 t = MWL.Param('ci','psychocurve','start_t');
-
-% since RunOne interprets x=1 as hardest and x=0 as easiest, must pass 1-x.
-fNext = @(x) MWL.CI.RunOne(mwlt,1-x);
   
-p = PsychoCurve('F',fNext, 'a', a, 'g', g, 'xstep', xstep, 't', t);
+p = PsychoCurve('F',@NextTrial, 'a', a, 'g', g, 'xstep', xstep, 't', t);
 
 numTrial = MWL.Param('ci','numTrial');
+currTrial = 0;
+
 p.Run('itmin',numTrial, 'itmax',numTrial, 'silent', true);
+% for final trial
+lastCorrect = p.bResponse(end);
+mwlt.Experiment.AddLog(['Response ' conditional(lastCorrect,'','in') 'correct. ']);
+mwlt.Experiment.AddLog(['Final t: ' num2str(p.t)]);
 
 % save psychocurve object
 mwlt.Experiment.Info.Set('mwlt',{'ci','psychoCurve'},p);
+mwlt.Experiment.AddLog('PsychoCurve saved');
 % clear global variables again
 clear global CIResult;
-end
 
+      function bCorrect = NextTrial(x)
+          if currTrial > 0 % log data about last trial
+              lastCorrect = p.bResponse(end);
+              mwlt.Experiment.AddLog(['Response ' conditional(lastCorrect,'','in') 'correct. ']);
+              mwlt.Experiment.AddLog(['Current t: ' num2str(p.t)]);
+          end
+          currTrial = currTrial + 1;
+          mwlt.Experiment.AddLog(['Trial ' num2str(currTrial) '/' num2str(numTrial) ': begin']);
+          % since RunOne interprets x=1 as hardest and x=0 as easiest, must pass 1-x.
+          dLevel  = 1-x;
+          bCorrect = MWL.CI.RunOne(mwlt,dLevel);
+          mwlt.Experiment.AddLog(['Trial ' num2str(currTrial) '/' num2str(numTrial) ': end']);
+      end
+
+end
 %---------------Instruction sequence adapted from CI.Program.Train3.m--------
 
 function ShowInstructions(mwlt)

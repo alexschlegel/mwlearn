@@ -54,10 +54,8 @@ fWait   = {@Wait_Default
            @Wait_Default
            @Wait_Default
           };
-mwlt.Experiment.Log.Append('Trial begin');
 [cTrial.tStart,cTrial.tEnd,cTrial.tShow,cTrial.bAbort,cTrial.kButton,cTrial.rt] = ...
     mwlt.Experiment.Show.Sequence(cX, tShow, 'fwait', fWait, 'tbase', 'step', 'fixation', false);
-mwlt.Experiment.Log.Append('Trial end');
 
 % Close textures
 cellfun(@(t) mwlt.Experiment.Window.CloseTexture(t), {'start','prompt','test','response','feedback'});
@@ -72,7 +70,7 @@ if ~bPractice
         angleResult(end+1) = cTrial;
     end
     mwlt.Experiment.Info.Set('mwlt', {'angle','result'}, angleResult);
-    mwlt.Experiment.Log.Append('Trial results saved.');
+    mwlt.Experiment.AddLog('Trial results saved.');
 end
 %-----------------------------------------------------------------------------%
     function ShowFeedback(bGiveFeedback, varargin)
