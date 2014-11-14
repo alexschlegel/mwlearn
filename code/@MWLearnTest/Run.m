@@ -41,8 +41,8 @@ end
 
 % Finish up
 fClose = @()deal(mwlt.Experiment.Input.DownOnce('unlock'),false,PTB.Now);
-mwlt.Scheduler.Pause;
+mwlt.Experiment.Scheduler.Pause;
 mwlt.Experiment.Show.Instructions('Task finished! Please alert the experimenter.', ...
      'prompt', ' ', 'fresponse', conditional(opt.lock,fClose,@()deal(true,false,PTB.Now)));
-mwlt.Scheduler.Resume;
+mwlt.Experiment.Scheduler.Resume;
 end
