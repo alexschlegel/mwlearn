@@ -81,15 +81,15 @@ classdef GridOp < PTB.Object
 			
 			opt.input_scheme	= 'lr';
 			
+			% get existing subjects
+			global strDirData
+			cSubjectFiles	= FindFiles(strDirData, '^\w\w\w?\w?\.mat$');
+			
 			%options for PTB.Experiment object
 			cOpt = opt2cell(opt);
 			
 			%initialize the experiment
 			go.Experiment	= PTB.Experiment(cOpt{:});
-			
-			% get existing subjects
-			global strDirData
-			cSubjectFiles	= FindFiles(strDirData, '^\w\w\w?\w?\.mat$');
 			
 			%set the session
 				subInit	= go.Experiment.Info.Get('subject','init');
@@ -132,6 +132,8 @@ classdef GridOp < PTB.Object
 			v	= varargin;
             
 			go.Experiment.End(v{:});
+			
+			disp(sprintf('Final reward: $%.2f',go.reward));
 		end
 		%----------------------------------------------------------------------%
 	end

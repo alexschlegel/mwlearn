@@ -42,7 +42,14 @@ while bContinue
 	strPerformance	= ['You were correct on ' num2str(nCorrectC) ' of the last ' num2str(nCount) ' trial' plural(nCount,'','s') '.'];
 	strLog			= ['<size:0.5>History: ' join(arrayfun(@(k) chrLog{k},double(bCorrectC)+1,'uni',false),' ') ' (' num2str(nPractice) ' total)</size>'];
 	
-	bContinue	= go.YesNo([strResponse '\n\n' strPerformance '\n' strLog '\n\nAgain?']);
+	strFeedback	= [strResponse '\n\n' strPerformance '\n' strLog];
+	
+	go.Experiment.Show.Text(strFeedback);
+	go.Experiment.Window.Flip;
+	
+	WaitSecs(1);
+	
+	bContinue	= go.YesNo([strFeedback '\n\nAgain?']);
 end
 
 %save the results
