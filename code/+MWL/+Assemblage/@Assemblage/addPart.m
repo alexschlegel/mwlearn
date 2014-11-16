@@ -24,7 +24,7 @@ function part = addPart(a,partName,varargin)
 % License.
 [neighbor,sidePart,sideNeighbor,opt]	= ParseArgs(varargin,NaN,0,0,struct);
 
-opts	= StructMerge(a.opt,opt);
+opt	= StructMerge(a.opt,opt);
 
 part			= MWL.Assemblage.AssemblagePart(a.ptb,partName,opt);
 part.assemblage	= a;

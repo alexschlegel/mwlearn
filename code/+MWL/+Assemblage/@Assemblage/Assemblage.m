@@ -43,10 +43,13 @@ classdef Assemblage < handle
 %				findReplacements:	
 %				pickReplacement:	
 %				createDistractor:	
-%				createDistractors:	
+%				createDistractors:
+%				getSteps:	
+%				setSteps:	
+%				getPartLocations:	
 %				Image:	
 %				ShowInstruction:	
-%				Show:	***
+%				Show:	
 %
 % In:
 %	ptb		- the PTB object that will show the assemblage
@@ -87,19 +90,9 @@ classdef Assemblage < handle
 			
 			a.opt.imax	= unless(GetFieldPath(a.opt,'imax'),numel(parts));
 			
-			a.rotation	= 0;
-			
-			a.element	= {};
-			
-			a.existingParts	= {};
 			a.possibleParts	= parts(1:a.opt.imax);
 			
-			a.history		= {};
-			a.instruction	= {};
-			a.grid	= struct(...
-				'min'	, [0 0]	, ...
-				'max'	, [0 0]	  ...
-				);
+			a.reset;
 		end
 		%----------------------------------------------------------------------%
 	end

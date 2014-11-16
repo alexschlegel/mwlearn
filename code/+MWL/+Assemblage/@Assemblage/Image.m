@@ -19,7 +19,7 @@ if a.numParts==0
 	return;
 end
 
-%first construct the full, non-rotated assemblage
+%construct the assemblage image
 	parts	= a.part;
 	nPart	= numel(parts);
 	
@@ -56,7 +56,11 @@ end
 		end
 
 %colorize
-	colBack	= a.ptb.Color.Get('background');
+	if isstruct(a.ptb)
+		colBack	= a.ptb.Color.Get('background');
+	else
+		colBack	= [128 128 128];
+	end
 	colBack	= colBack(1:3);
 	colFore	= [0 0 0];
 	
