@@ -1,12 +1,12 @@
 function b = YesNo(go, strPrompt)
 % GridOp.YesNo
 % 
-% Description:	as a yes or no question and return the response
+% Description:	ask a yes or no question and return the response
 % 
 % Syntax:	b = go.YesNo(strPrompt)
 % 
-% Updated: 2014-11-10
-% Copyright 2014 Alex Schlegel (schlegel@gmail.com).  This work is licensed
+% Updated: 2015-01-06
+% Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
 strYes	= GO.Param('response','correct');

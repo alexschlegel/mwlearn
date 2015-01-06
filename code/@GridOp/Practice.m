@@ -49,7 +49,8 @@ while bContinue
 	
 	WaitSecs(1);
 	
-	bContinue	= go.YesNo([strFeedback '\n\nAgain?']);
+	bContinue	= go.Continue(strFeedback);
+	%bContinue	= go.YesNo([strFeedback '\n\nAgain?']);
 end
 
 %save the results

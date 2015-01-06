@@ -25,6 +25,7 @@ classdef GridOp < PTB.Object
 	%PUBLIC PROPERTIES---------------------------------------------------------%
 	properties
 		Experiment;
+		Key;
 		
 		%running reward total
 			reward;
@@ -90,6 +91,9 @@ classdef GridOp < PTB.Object
 			
 			%initialize the experiment
 			go.Experiment	= PTB.Experiment(cOpt{:});
+			
+			%add a keyboard object
+			go.Key	= PTB.Device.Input.Keyboard(go.Experiment);
 			
 			%set the session
 				subInit	= go.Experiment.Info.Get('subject','init');

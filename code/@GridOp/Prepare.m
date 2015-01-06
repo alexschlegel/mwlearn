@@ -38,6 +38,9 @@ global strDirBase;
 	go.Experiment.Input.Set('response',{kCorrect,kIncorrect});
 	go.Experiment.Input.Set('correct',kCorrect);
 	go.Experiment.Input.Set('incorrect',kIncorrect);
+%other buttons
+	kAbort	= GO.Param('response','abort');
+	go.Key.Set('abort',kAbort);
 %run
 	go.Experiment.Info.Set('go','run',1);
 	go.Experiment.Info.Set('go','result',cell(GO.Param('exp','runs'),1));
