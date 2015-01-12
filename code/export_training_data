@@ -1,2 +1,4 @@
-outdir=`pwd`/../data/raw
+scriptdir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+outdir=$scriptdir/../data/raw
+echo $outdir
 mongoexport -d mwlearn -c training_data --jsonArray -o $outdir/training_data.json
