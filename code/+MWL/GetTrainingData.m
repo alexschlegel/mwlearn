@@ -15,9 +15,20 @@ function s = GetTrainingData()
 % License.
 global strDirCode
 
-%update the training_data json file
-	strCommand	= PathUnsplit(DirAppend('/','home','tselab','studies','mwlearn','code'),'export_training_data');
+%update the database json files
+	strCommand	= PathUnsplit(DirAppend('/','home','tselab','studies','mwlearn','code'),'export_mongo_data');
 	if ~strcmp(computername,'wertheimer')
 		strCommand	= sprintf('ssh tselab@wertheimer.dartmouth.edu %s',strCommand);
 	end
-	[ec,out]	= RunBashScript(strCommand);
+	[ec,out]	= RunBashScript(strCommand,'silent',true);
+	
+	if ec~=0
+		error('Could not update the mongo export files.');
+	end
+
+%load the training_data json file
+	strPathTD	= PathUnsplit(DirAppend(strDirData,'raw'),'training_data','json');
+	s.exp		= json.from(fget(strPathTD));
+
+%update the control_data json file
+	
