@@ -1,5 +1,7 @@
 Hi ***,
 
+Thanks for coming in to our lab ***.  Here are your training instructions:
+
 You can access the web based imagery training program here:
 http://wertheimer.dartmouth.edu
 

@@ -1,0 +1,2 @@
+outdir=`pwd`/../data/raw
+mongoexport -d mwlearn -c training_data --jsonArray -o $outdir/training_data.json
