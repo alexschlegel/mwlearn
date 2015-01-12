@@ -70,9 +70,12 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 		ifo				= structfun2(@(x) x(kKeep),ifo);
 	end
 
-%sort by subject code
+%sort by subject code and eliminate blank subjects
 	[c,kSort]	= sort(ifo.n);
 	ifo			= StructArrayRestructure(ifo);
 	ifo			= ifo(kSort);
-	ifo			= StructArrayRestructure(ifo);
 	
+	bBlank		= cellfun(@isempty,{ifo.id});
+	ifo(bBlank)	= [];
+	
+	ifo			= StructArrayRestructure(ifo);
