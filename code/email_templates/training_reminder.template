@@ -1,0 +1,15 @@
+Daily Training Reminder (<sessions_finished> of 20 sessions completed)
+Hi <name>,
+
+This is your daily status update and reminder to complete your <training_type> training sessions!
+
+You:
+ - have completed <sessions_finished> out of 20 sessions.
+ - have been training for <days_since_start> days.
+ - have averaged <session_rate> sessions per day.
+ - have <days_left> days left in order to complete your sessions by <date_end> (<end_date_type>).
+
+If you are on track, then keep it up!  If you are off track and having trouble, then let me know what's up!
+
+Thanks,
+Alex

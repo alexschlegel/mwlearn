@@ -7,22 +7,44 @@ function s = GetSubjectProgress(varargin)
 %
 % In:
 %	<options>:
-%		report: 	(true) true to print out info about the subjects' progress
+%		report: 		(true) true to print out info about the subjects'
+%						progress
+%		sort:			(<none>) the field by which to sort the data
+%		order:			('ascend') either 'ascend' or 'descend', specifying the
+%						sort order
+%		unscheduled:	(false) true to include only subjects who aren't
+%						scheduled for their followup fMRI scan
 % 
-% Updated: 2015-01-11
+% Updated: 2015-01-30
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
 opt	= ParseArgs(varargin,...
-		'report'	, true	  ...
+		'report'		, true		, ...
+		'sort'			, []		, ...
+		'order'			, 'ascend'	, ...
+		'unscheduled'	, false		  ...
 		);
 
 sData	= MWL.GetTrainingData;
 
+%exclude scheduled subjects
+	if opt.unscheduled
+		bKeep		= isnan(sData.ifo.fmri2);
+		sData.id	= sData.id(bKeep);
+		
+		sData.ifo	= StructArrayRestructure(sData.ifo);
+		sData.ifo	= sData.ifo(bKeep);
+		sData.ifo	= StructArrayRestructure(sData.ifo);
+		
+		sData.data	= sData.data(bKeep);
+	end
+
 nSubject	= numel(sData.id);
 
 tStart	= sData.ifo.behav1;
-tEnd	= conditional(~isnan(sData.ifo.behav2),sData.ifo.behav2,sData.ifo.behav1+ConvertUnit(4,'week','ms'));
+bEndSet	= ~isnan(sData.ifo.behav2);
+tEnd	= conditional(bEndSet,sData.ifo.behav2,sData.ifo.behav1+ConvertUnit(4,'week','ms'));
 
 s	= struct(...
 		'id'				, {sData.id}		, ...
@@ -30,6 +52,7 @@ s	= struct(...
 		'email'				, {sData.ifo.email}	, ...
 		't_start'			, tStart			, ...
 		't_end'				, tEnd				, ...
+		'end_type'			, bEndSet			, ...
 		'sessions_finished'	, zeros(nSubject,1)	  ...
 		);
 
@@ -48,22 +71,30 @@ tRef	= conditional(s.t_end>nowms,nowms,s.t_end);
 s.days_since_start	= ConvertUnit(tRef-tStart,'ms','day');
 s.session_rate		= s.sessions_finished./s.days_since_start;
 
-if opt.report
-	[dummy,kSort]	= sort(s.days_since_start,1,'descend');
-	sR				= StructArrayRestructure(s);
-	sR				= sR(kSort);
-	sR				= StructArrayRestructure(sR);
-	
-	
-	for kS=1:nSubject
-		strLabel	= sR.id{kS};
+s.t_end_est			= s.t_start + ConvertUnit(20./s.session_rate,'day','ms');
+bBad				= isinf(s.t_end_est) | isnan(s.t_end_est);
+s.t_end_est(bBad)	= s.t_end(bBad);
+
+%sort the data
+	if ~isempty(opt.sort)
+		[dummy,kSort]	= sort(s.(opt.sort),opt.order);
 		
-		disp(sprintf('%s: %03d days, %03d sessions, %.2f sessions/day (%s)',...
-			strLabel						, ...
-			round(sR.days_since_start(kS))	, ...
-			sR.sessions_finished(kS)		, ...
-			sR.session_rate(kS)				, ...
-			sR.email{kS}					  ...
+		s	= StructArrayRestructure(s);
+		s	= s(kSort);
+		s	= StructArrayRestructure(s);
+	end
+
+if opt.report
+	for kS=1:nSubject
+		strLabel	= s.id{kS};
+		
+		disp(sprintf('%s: %03d days, %03d ses., %.2f ses./day, %s est. finish (%s)',...
+			strLabel							, ...
+			round(s.days_since_start(kS))		, ...
+			s.sessions_finished(kS)				, ...
+			s.session_rate(kS)					, ...
+			FormatTime(s.t_end_est(kS),'mm/dd')	, ...
+			s.email{kS}							  ...
 			));
 	end
 end
