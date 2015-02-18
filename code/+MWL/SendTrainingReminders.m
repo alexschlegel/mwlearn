@@ -37,8 +37,8 @@ opt	= ParseArgs(varargin,...
 	
 	ifo.session_rate		= roundn(ifo.session_rate,-3);
 	ifo.days_since_start	= round(ifo.days_since_start);
-	ifo.days_left			= 28 - ifo.days_since_start;
 	ifo.date_end			= arrayfun(@(t) strrep(FormatTime(t,'mmmm dd'),'  ',' '),ifo.t_end,'UniformOutput',false);
+	ifo.days_left			= round(ConvertUnit(ifo.t_end - nowms,'ms','day'));
 	ifo.end_date_type		= conditional(ifo.end_type,{'your second behavioral session date'},{'four weeks total'});
 	
 	bRemind	= ifo.training_reminder==1 & ifo.sessions_finished<20 & ifo.days_since_start>0;

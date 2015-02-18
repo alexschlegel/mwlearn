@@ -66,9 +66,9 @@ for kS=1:nSubject
 	end
 end
 
-tRef	= conditional(s.t_end>nowms,nowms,s.t_end);
+tRef	= conditional(s.t_end>nowms | nowms>s.t_start,nowms,s.t_end);
 
-s.days_since_start	= ConvertUnit(tRef-tStart,'ms','day');
+s.days_since_start	= ConvertUnit(tRef-s.t_start,'ms','day');
 s.session_rate		= s.sessions_finished./s.days_since_start;
 
 s.t_end_est			= s.t_start + ConvertUnit(20./s.session_rate,'day','ms');
