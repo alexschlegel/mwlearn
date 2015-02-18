@@ -41,7 +41,7 @@ strComputerTo	= 'wertheimer';
 			strPathTo	= PathChangeBase(strPathFrom,strDirFrom,strDirTo);
 			
 			if FileExists(strPathTo)
-				reSubject	= '^\w\w\[0-9]?.mat$';
+				reSubject	= '^\w\w[0-9]?\.mat$';
 				if regexp(PathGetFileName(strPathFrom),reSubject)
 				%subject .mat file
 				
