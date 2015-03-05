@@ -20,9 +20,9 @@ global strDirBase;
 warning('off','MATLAB:xlsread:ActiveX');
 
 %numeric fields
-	cNumeric	= {'n','group','dob','learn_style','fmri1','behav1','fmri2','behav2'};
+	cNumeric	= {'n','group','dob','learn_style','fmri1','behav1','fmri2','behav2','behav3'};
 %date fields
-	cDate		= {'dob','fmri1','behav1','fmri2','behav2'};
+	cDate		= {'dob','fmri1','behav1','fmri2','behav2','behav3'};
 
 strDirXLS	= DirAppend(strDirBase,'docs','secure');
 strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
@@ -40,8 +40,7 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 		%data-specific manipulation
 			switch cField{kF}
 				case {'gender'}
-					mGender				= mapping({'f','m'},{0 1});
-					ifo.(cField{kF})	= cellfun(@(x) mGender(lower(x)),ifo.(cField{kF}),'UniformOutput',false);
+					ifo.(cField{kF})	= cellfun(@(x) switch2(lower(x),'f',0,'m',1,NaN),ifo.(cField{kF}));
 			end
 		%fix date fields
 			if ismember(cField{kF},cDate)
