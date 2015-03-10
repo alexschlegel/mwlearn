@@ -15,7 +15,7 @@ function s = GetSubjectProgress(varargin)
 %		unscheduled:	(false) true to include only subjects who aren't
 %						scheduled for their followup fMRI scan
 % 
-% Updated: 2015-01-30
+% Updated: 2015-03-06
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
@@ -33,9 +33,9 @@ sData	= MWL.GetTrainingData;
 		bKeep		= isnan(sData.ifo.fmri2);
 		sData.id	= sData.id(bKeep);
 		
-		sData.ifo	= StructArrayRestructure(sData.ifo);
+		sData.ifo	= restruct(sData.ifo);
 		sData.ifo	= sData.ifo(bKeep);
-		sData.ifo	= StructArrayRestructure(sData.ifo);
+		sData.ifo	= restruct(sData.ifo);
 		
 		sData.data	= sData.data(bKeep);
 	end
@@ -79,9 +79,9 @@ s.t_end_est(bBad)	= s.t_end(bBad);
 	if ~isempty(opt.sort)
 		[dummy,kSort]	= sort(s.(opt.sort),opt.order);
 		
-		s	= StructArrayRestructure(s);
+		s	= restruct(s);
 		s	= s(kSort);
-		s	= StructArrayRestructure(s);
+		s	= restruct(s);
 	end
 
 if opt.report

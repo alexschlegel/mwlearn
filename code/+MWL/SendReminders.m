@@ -16,7 +16,7 @@ function b = SendReminders(varargin)
 % Out:
 % 	b	- a logical array indicating which messages were successfully sent
 % 
-% Updated: 2015-01-04
+% Updated: 2015-03-06
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
@@ -41,9 +41,9 @@ tOffset	= ConvertUnit(opt.offset,'hour','ms');
 	ifo.email	= repmat(s.email,[4 1]);
 	
 	bConsider	= ~isnan(ifo.tscan);
-	ifo			= StructArrayRestructure(ifo);
+	ifo			= restruct(ifo);
 	ifo			= ifo(bConsider);
-	ifo			= StructArrayRestructure(ifo);
+	ifo			= restruct(ifo);
 	
 	ifo.tscan_short	= arrayfun(@FormatTimeShort,ifo.tscan,'UniformOutput',false);
 	ifo.tscan_long	= arrayfun(@FormatTimeLong,ifo.tscan,'UniformOutput',false);
@@ -59,9 +59,9 @@ tOffset	= ConvertUnit(opt.offset,'hour','ms');
 	[t,kSort]		= sort(ifo.tscan(kSubject));
 	kSubject		= kSubject(kSort);
 	
-	ifo	= StructArrayRestructure(ifo);
+	ifo	= restruct(ifo);
 	ifo	= ifo(kSubject);
-	ifo	= StructArrayRestructure(ifo);
+	ifo	= restruct(ifo);
 %remind!
 	ifo.tscan	= ifo.tscan + tOffset;
 	

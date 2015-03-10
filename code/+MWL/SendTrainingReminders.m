@@ -14,7 +14,7 @@ function b = SendTrainingReminders(varargin)
 % Out:
 % 	b	- a logical array indicating which messages were successfully sent
 % 
-% Updated: 2015-01-21
+% Updated: 2015-03-06
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
@@ -43,9 +43,9 @@ opt	= ParseArgs(varargin,...
 	
 	bRemind	= ifo.training_reminder==1 & ifo.sessions_finished<20 & ifo.days_since_start>0;
 	
-	ifo			= StructArrayRestructure(ifo);
+	ifo			= restruct(ifo);
 	ifo			= ifo(bRemind);
-	ifo			= StructArrayRestructure(ifo);
+	ifo			= restruct(ifo);
 %remind!
 	strPathTemplate			= PathUnsplit(DirAppend(strDirBase,'code','email_templates'),'training_reminder','template');
 	

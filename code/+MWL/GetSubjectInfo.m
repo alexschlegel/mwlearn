@@ -11,7 +11,7 @@ function ifo = GetSubjectInfo(varargin)
 % Out:
 % 	ifo	- a struct of info
 % 
-% Updated: 2015-01-03
+% Updated: 2015-03-06
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  All Rights Reserved.
 kReturn	= ParseArgs(varargin,[]);
 
@@ -71,10 +71,10 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 
 %sort by subject code and eliminate blank and inactive subjects
 	[c,kSort]	= sort(ifo.n);
-	ifo			= StructArrayRestructure(ifo);
+	ifo			= restruct(ifo);
 	ifo			= ifo(kSort);
 	
 	bRemove			= arrayfun(@(s) isempty(s.id) || s.active==0,ifo);
 	ifo(bRemove)	= [];
 	
-	ifo			= StructArrayRestructure(ifo);
+	ifo			= restruct(ifo);
