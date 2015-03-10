@@ -20,7 +20,9 @@ global strDirBase strDirData
 warning('off','MATLAB:xlsread:ActiveX');
 
 %session date fields
-	cFieldSession	= {'fmri1'; 'behav1'; 'fmri2'; 'behav2'; 'behav3'};
+	cFieldSessionMRI	= {'fmri1'; 'fmri2'};
+	cFieldSessionBehav	= {'behav1'; 'behav2'; 'behav3'};
+	cFieldSession		= [cFieldSessionMRI; cFieldSessionBehav];
 %numeric fields
 	cNumeric	= ['n'; 'group'; 'dob'; 'learn_style'; cFieldSession];
 %date fields
@@ -67,11 +69,6 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 		kKeep			= kKeep(bKeep);
 		ifo				= structfun2(@(x) x(kKeep),ifo);
 	end
-
-%get some derived info
-	%subject name
-		ifo.name	= cellfun(@(a,b) conditional(~isempty(b),b,a),ifo.first,ifo.preferred,'UniformOutput',false);
-
 %sort by subject code and eliminate blank and inactive subjects
 	[c,kSort]	= sort(ifo.n);
 	ifo			= restruct(ifo);
@@ -82,18 +79,27 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 	
 	ifo			= restruct(ifo);
 
-%get the session codes
-	cSessionCode	= cellfun(@(f) cellfun(@(t,id) conditional(isnan(t),NaN,sprintf('%s%s',lower(FormatTime(t,'ddmmmyy')),id)),num2cell(ifo.(f)),ifo.id,'uni',false),cFieldSession,'uni',false);
-	ifo.code	= cell2struct(cSessionCode,cFieldSession);
+%reorganize the session times
+	ifo.t.mri			= cellfun(@(f) ifo.(f),cFieldSessionMRI,'uni',false);
+	ifo.t.behavioral	= cellfun(@(f) ifo.(f),cFieldSessionBehav,'uni',false);
+	ifo.t				= structfun2(@(ct) cat(2,ct{:}),ifo.t);
+	
+	ifo	= rmfield(ifo,cFieldSession);
 
-%get the various paths
-	ifo.path.session	= structfun2(@(cs) cellfun(@GetSessionPath,cs,'uni',false),ifo.code);
+%get some derived info
+	%subject name
+		ifo.name	= cellfun(@(a,b) conditional(~isempty(b),b,a),ifo.first,ifo.preferred,'UniformOutput',false);
+	%session codes
+		ifo.code	= structfun2(@(t) cellfun(@sessioncode,repmat(ifo.id,[1 size(t,2)]),num2cell(t),'uni',false),ifo.t); 
+		
+	%various paths
+		ifo.path.session	= structfun2(@(cs) cellfun(@GetSessionPath,cs,'uni',false),ifo.code);
 
 
 %------------------------------------------------------------------------------%
 function strPathSession = GetSessionPath(s)
-	if isnan(s)
-		strPathSession	= NaN;
+	if isempty(s)
+		strPathSession	= '';
 	else
 		strPathSession	= PathUnsplit(strDirData,s,'mat');
 	end
