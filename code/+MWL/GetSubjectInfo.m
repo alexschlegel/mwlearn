@@ -84,8 +84,6 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 
 %get the session codes
 	cSessionCode	= cellfun(@(f) cellfun(@(t,id) conditional(isnan(t),NaN,sprintf('%s%s',lower(FormatTime(t,'ddmmmyy')),id)),num2cell(ifo.(f)),ifo.id,'uni',false),cFieldSession,'uni',false);
-	cSessionCode
-	cFieldSession
 	ifo.code	= cell2struct(cSessionCode,cFieldSession);
 
 %get the various paths
