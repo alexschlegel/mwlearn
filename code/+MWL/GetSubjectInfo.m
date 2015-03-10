@@ -11,18 +11,20 @@ function ifo = GetSubjectInfo(varargin)
 % Out:
 % 	ifo	- a struct of info
 % 
-% Updated: 2015-03-06
+% Updated: 2015-03-10
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  All Rights Reserved.
 kReturn	= ParseArgs(varargin,[]);
 
-global strDirBase;
+global strDirBase strDirData
 
 warning('off','MATLAB:xlsread:ActiveX');
 
+%session date fields
+	cFieldSession	= {'fmri1'; 'behav1'; 'fmri2'; 'behav2'; 'behav3'};
 %numeric fields
-	cNumeric	= {'n','group','dob','learn_style','fmri1','behav1','fmri2','behav2','behav3'};
+	cNumeric	= ['n'; 'group'; 'dob'; 'learn_style'; cFieldSession];
 %date fields
-	cDate		= {'dob','fmri1','behav1','fmri2','behav2','behav3'};
+	cDate		= ['dob'; cFieldSession];
 
 strDirXLS	= DirAppend(strDirBase,'docs','secure');
 strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
@@ -59,15 +61,16 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 				ifo.(cField{kF})(bBlank)	= {''};
 			end
 	end
-%get some derived info
-	%subject name
-		ifo.name	= cellfun(@(a,b) conditional(~isempty(b),b,a),ifo.first,ifo.preferred,'UniformOutput',false);
 %keep the specified subset
 	if ~isempty(kReturn)
 		[bKeep,kKeep]	= ismember(kReturn,ifo.code);
 		kKeep			= kKeep(bKeep);
 		ifo				= structfun2(@(x) x(kKeep),ifo);
 	end
+
+%get some derived info
+	%subject name
+		ifo.name	= cellfun(@(a,b) conditional(~isempty(b),b,a),ifo.first,ifo.preferred,'UniformOutput',false);
 
 %sort by subject code and eliminate blank and inactive subjects
 	[c,kSort]	= sort(ifo.n);
@@ -78,3 +81,25 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 	ifo(bRemove)	= [];
 	
 	ifo			= restruct(ifo);
+
+%get the session codes
+	cSessionCode	= cellfun(@(f) cellfun(@(t,id) conditional(isnan(t),NaN,sprintf('%s%s',lower(FormatTime(t,'ddmmmyy')),id)),num2cell(ifo.(f)),ifo.id,'uni',false),cFieldSession,'uni',false);
+	cSessionCode
+	cFieldSession
+	ifo.code	= cell2struct(cSessionCode,cFieldSession);
+
+%get the various paths
+	ifo.path.session	= structfun2(@(cs) cellfun(@GetSessionPath,cs,'uni',false),ifo.code);
+
+
+%------------------------------------------------------------------------------%
+function strPathSession = GetSessionPath(s)
+	if isnan(s)
+		strPathSession	= NaN;
+	else
+		strPathSession	= PathUnsplit(strDirData,s,'mat');
+	end
+end
+%------------------------------------------------------------------------------%
+
+end
