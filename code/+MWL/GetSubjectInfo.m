@@ -93,17 +93,9 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 		ifo.code	= structfun2(@(t) cellfun(@sessioncode,repmat(ifo.id,[1 size(t,2)]),num2cell(t),'uni',false),ifo.t); 
 		
 	%various paths
-		ifo.path.session	= structfun2(@(cs) cellfun(@GetSessionPath,cs,'uni',false),ifo.code);
-
-
-%------------------------------------------------------------------------------%
-function strPathSession = GetSessionPath(s)
-	if isempty(s)
-		strPathSession	= '';
-	else
-		strPathSession	= PathUnsplit(strDirData,s,'mat');
-	end
-end
-%------------------------------------------------------------------------------%
-
-end
+		ifo.path.session		= structfun2(@(cs) cellfun(@(s) GetPathSessionMAT(strDirData,s),cs,'uni',false),ifo.code);
+		ifo.path.functional.raw	= cellfun(@(s) GetPathFunctional(strDirData,s,'run','all'),ifo.code.mri,'uni',false);
+		ifo.path.functional.pp	= cellfun(@(s,raw) conditional(numel(raw)>0,GetPathFunctional(strDirData,s,'type','pp','run',(1:numel(raw))'),{}),ifo.code.mri,ifo.path.functional.raw,'uni',false);
+		ifo.path.functional.cat	= cellfun(@(s) GetPathFunctional(strDirData,s,'type','cat'),ifo.code.mri,'uni',false);
+		ifo.path.diffusion.raw	= cellfun(@(s) GetPathDTI(strDirData,s),ifo.code.mri,'uni',false);
+		ifo.path.structural.raw	= cellfun(@(s) GetPathStructural(strDirData,s),ifo.code.mri,'uni',false);
