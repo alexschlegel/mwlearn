@@ -1,42 +1,43 @@
 function b = Masks(varargin)
-% GO.Masks
+% MWL.Masks
 % 
 % Description:	prepare masks from CI, an anatomical occipital mask, and a
 %				ventricle mask for control analyses
 % 
-% Syntax:	b = GO.Masks(<options>)
+% Syntax:	b = MWL.Masks(<options>)
 % 
 % In:
 % 	<options>:
-%		subject:	(<all>) the subjects to process
 %		force:		(false)
 %		nthread:	(12)
 % 
-% Updated: 2014-04-16
-% Copyright 2014 Alex Schlegel (schlegel@gmail.com).  This work is licensed
+% Updated: 2015-03-16
+% Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
 global strDirData;
 
 opt	= ParseArgs(varargin,...
-		'subject'	, {}	, ...
 		'force'		, false	, ...
 		'nthread'	, 12	  ...
 		);
 
-cSubject	= GO.Subject('subject',opt.subject,'state','fmri');
+ifo	= MWL.GetSubjectInfo;
+
+cSubject	= ifo.code.mri;
+cSubject	= cSubject(~cellfun(@isempty,cSubject));
 
 strDirMaskOut	= DirAppend(strDirData,'mask');
 
 %CI masks
-	strDirMaskCI	= DirAppend(strDirData,'mni-mask');
-	cPathMaskMNI	= FindFilesByExtension(strDirMaskCI,'nii.gz');
+	strDirMaskCI	= DirAppend(strDirData,'mask-ci');
+	cPathMaskCI		= FindFilesByExtension(strDirMaskCI,'nii.gz');
 	
 	%remove the occ masks
 		bRemove					= cellfun(@(f) ~isempty(strfind(PathGetFilePre(f,'favor','nii.gz'),'occ')),cPathMaskMNI);
-		cPathMaskMNI(bRemove)	= [];
+		cPathMaskCI(bRemove)	= [];
 	
-	nMask			= numel(cPathMaskMNI);
+	nMask			= numel(cPathMaskCI);
 	
 	cDirReg		= cellfun(@(s) DirAppend(strDirData,'functional',s,'feat_cat','reg'),cSubject,'uni',false);
 	bDo			= cellfun(@isdir,cDirReg);
@@ -103,16 +104,16 @@ strDirMaskOut	= DirAppend(strDirData,'mask');
 		cPathFS2FR		= repmat(cPathFS2F,[nMask 1]);
 		cPathFR			= repmat(cPathF,[nMask 1]);
 		
-		cPathMaskOcc	= cellfun(@(d,m) PathUnsplit(d,m,'nii.gz'),cDirMaskR,cMaskNameR,'uni',false);
+		cPathMask		= cellfun(@(d,m) PathUnsplit(d,m,'nii.gz'),cDirMaskR,cMaskNameR,'uni',false);
 		
 		cInput	=	{...
-						cDirFreeSurferR						, ...
-						cMaskLabelR							, ...
-						'crop'			, cCropR			, ...
-						'xfm'			, cPathFS2FR		, ...
-						'ref'			, cPathFR			, ...
-						'output'		, cPathMaskOcc		, ...
-						'force'			, opt.force			  ...
+						cDirFreeSurferR					, ...
+						cMaskLabelR						, ...
+						'crop'			, cCropR		, ...
+						'xfm'			, cPathFS2FR	, ...
+						'ref'			, cPathFR		, ...
+						'output'		, cPathMask		, ...
+						'force'			, opt.force		  ...
 					};
 		
 		b	= MultiTask(@FreeSurferMask,cInput,...
@@ -139,38 +140,29 @@ strDirMaskOut	= DirAppend(strDirData,'mask');
 			'nthread'	, opt.nthread				  ...
 			);
 
-%union masks
-	sUnion	= GO.UnionMasks;
-	
-	cUnionName	= fieldnames(sUnion);
-	nUnion		= numel(cUnionName);
-	
-	MultiTask(@(n) UnionMask(sUnion.(n),n),{cUnionName},...
-		'description'	, 'constructing union masks'	, ...
-		'nthread'		, opt.nthread					  ...
-		);
+%union mask
+	b	= MultiTask(@UnionMask,{cDirMask opt},...
+			'description'	, 'constructing union masks'	, ...
+			'nthread'		, opt.nthread					  ...
+			);
 	
 %------------------------------------------------------------------------------%
-function UnionMask(cMask,strName)
+function b = UnionMask(strDirMask,opt)
+	cMask	= {'dlpfc';'fef';'loc';'occ';'pcu';'ppc'};
 	cHemi	= {'-left';'-right';''};
 	nHemi	= numel(cHemi);
 	
-	cMask	= reshape(cMask,[],1);
-	
+	b	= true;
 	for kH=1:nHemi
 		strHemi	= cHemi{kH};
 		
+		strDirMask	= DirAppend(
+		
 		for kS=1:nSubject
-			strSubject	= cSubject{kS};
+			cPathMask		= cellfun(@(m) PathUnsplit(strDirMask,sprintf('%s%s',m,strHemi),'nii.gz'),cMask,'uni',false);
+			strPathUnion	= PathUnsplit(strDirMaskCur,sprintf('all%s',strHemi),'nii.gz');
 			
-			strDirMaskCur	= DirAppend(strDirMaskOut,strSubject);
-			cPathMask		= cellfun(@(m) PathUnsplit(strDirMaskCur,[m strHemi],'nii.gz'),cMask,'uni',false);
-			strPathUnion	= PathUnsplit(strDirMaskCur,[strName strHemi],'nii.gz');
-			
-			MRIMaskMerge(cPathMask,strPathUnion,'force',opt.force,'silent',true);
+			b	= b & MRIMaskMerge(cPathMask,strPathUnion,'force',opt.force,'silent',true);
 		end
 	end
-end
 %------------------------------------------------------------------------------%
-
-end

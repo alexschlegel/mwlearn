@@ -65,7 +65,7 @@ strPathXLS	= PathUnsplit(strDirXLS,'subject_info','xls');
 	end
 %keep the specified subset
 	if ~isempty(kReturn)
-		[bKeep,kKeep]	= ismember(kReturn,ifo.code);
+		[bKeep,kKeep]	= ismember(kReturn,ifo.n);
 		kKeep			= kKeep(bKeep);
 		ifo				= structfun2(@(x) x(kKeep),ifo);
 	end

@@ -34,16 +34,17 @@ tOffset	= ConvertUnit(opt.offset,'hour','ms');
 	
 	nSubject	= numel(s.n);
 	
-	ifo.tscan	= [s.fmri1; s.fmri2; s.behav1; s.behav2];
-	ifo.mri		= [true(2*nSubject,1); false(2*nSubject,1)];
+	tMRI		= reshape(s.t.mri,[],1);
+	tBehavioral	= reshape(s.t.behavioral,[],1);
 	
-	ifo.name	= repmat(s.name,[4 1]);
-	ifo.email	= repmat(s.email,[4 1]);
+	ifo.tscan	= [tMRI; tBehavioral];
+	ifo.mri		= [true(size(tMRI)); false(size(tBehavioral))];
+	
+	ifo.name	= repto(s.name,size(t.tscan));
+	ifo.email	= repto(s.email,size(t.tscan));
 	
 	bConsider	= ~isnan(ifo.tscan);
-	ifo			= restruct(ifo);
-	ifo			= ifo(bConsider);
-	ifo			= restruct(ifo);
+	ifo			= structtreefun(@(x) x(bConsider,:),ifo);
 	
 	ifo.tscan_short	= arrayfun(@FormatTimeShort,ifo.tscan,'UniformOutput',false);
 	ifo.tscan_long	= arrayfun(@FormatTimeLong,ifo.tscan,'UniformOutput',false);
@@ -59,9 +60,7 @@ tOffset	= ConvertUnit(opt.offset,'hour','ms');
 	[t,kSort]		= sort(ifo.tscan(kSubject));
 	kSubject		= kSubject(kSort);
 	
-	ifo	= restruct(ifo);
-	ifo	= ifo(kSubject);
-	ifo	= restruct(ifo);
+	ifo	= structtreefun(@(x) x(kSubject,:),ifo);
 %remind!
 	ifo.tscan	= ifo.tscan + tOffset;
 	

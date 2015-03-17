@@ -30,21 +30,20 @@ sData	= MWL.GetTrainingData;
 
 %exclude scheduled subjects
 	if opt.unscheduled
-		bKeep		= isnan(sData.ifo.fmri2);
+		bKeep		= isnan(sData.ifo.t.mri(:,2));
 		sData.id	= sData.id(bKeep);
 		
-		sData.ifo	= restruct(sData.ifo);
-		sData.ifo	= sData.ifo(bKeep);
-		sData.ifo	= restruct(sData.ifo);
+		sData.ifo	= structtreefun(@(x) x(bKeep,:),sData.ifo);
 		
 		sData.data	= sData.data(bKeep);
 	end
 
 nSubject	= numel(sData.id);
 
-tStart	= sData.ifo.behav1;
-bEndSet	= ~isnan(sData.ifo.behav2);
-tEnd	= conditional(bEndSet,sData.ifo.behav2,sData.ifo.behav1+ConvertUnit(4,'week','ms'));
+tStart			= sData.ifo.t.behavioral(:,1);
+tEnd			= sData.ifo.t.behavioral(:,2);
+bEndSet			= ~isnan(tEnd);
+tEnd(~bEndSet)	= tStart(~bEndSet)+ConvertUnit(4,'week','ms');
 
 s	= struct(...
 		'id'				, {sData.id}		, ...
@@ -79,9 +78,7 @@ s.t_end_est(bBad)	= s.t_end(bBad);
 	if ~isempty(opt.sort)
 		[dummy,kSort]	= sort(s.(opt.sort),opt.order);
 		
-		s	= restruct(s);
-		s	= s(kSort);
-		s	= restruct(s);
+		s	= structtreefun(@(x) x(kSort,:),s);
 	end
 
 if opt.report

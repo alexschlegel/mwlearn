@@ -1,37 +1,39 @@
 function b = FreeSurfer(varargin)
-% GO.Preprocess.FreeSurfer
+% MWL.Preprocess.FreeSurfer
 % 
 % Description:	run the structural data through FreeSurfer
 % 
-% Syntax:	b = GO.Preprocess.FreeSurfer(<options>)
+% Syntax:	b = MWL.Preprocess.FreeSurfer(<options>)
 % 
 % In:
 %	<options>:
-%		stage:		(<all>) an array of the stages to process
-%		subject:	(<all>) the codes of the subjects to process
-%		opt:		('') extra options for freesurfer
-%		nthread:	(11) the number of threads to use
+%		ifo:		(<load>) the subject info struct
+%		nthread:	(12) the number of threads to use
 %		force:		(false) true to reprocess everything
 % 
-% Updated: 2014-03-15
-% Copyright 2014 Alex Schlegel (schlegel@gmail.com).  This work is licensed
+% Updated: 2015-03-17
+% Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
 global strDirData;
 
 opt	= ParseArgs(varargin,...
-		'stage'		, []	, ...
-		'subject'	, []	, ...
-		'opt'		, ''	, ...
-		'nthread'	, 11	, ...
+		'ifo'		, []	, ...
+		'nthread'	, 12	, ...
 		'force'		, false	  ...
 		);
 
-cPathStruct	= GO.Path.Structural('subject',opt.subject,'state','fmri');
+if isempty(opt.ifo)
+	ifo	= MWL.GetSubjectInfo;
+else
+	ifo	= opt.ifo;
+end
 
-b	= FreeSurferProcess(cPathStruct,...
-		'stage'		, opt.stage		, ...
-		'opt'		, opt.opt		, ...
-		'nthread'	, opt.nthread	, ...
-		'force'		, opt.force		  ...
+cPathStructural	= ifo.path.structural.raw;
+bProcess		= FileExists(cPathStructural);
+
+b	= FreeSurferProcess(cPathStructural(bProcess),...
+		'check_results'	, false			, ...
+		'nthread'		, opt.nthread	, ...
+		'force'			, opt.force		  ...
 		);
