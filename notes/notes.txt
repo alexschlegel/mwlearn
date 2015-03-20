@@ -2,3 +2,18 @@ svg paths: https://openclipart.org/tags/silhouette?page=1
 
 
 sg2 has vitamin E pill on left side of head
+
+db fMRI 1: durinng run 9 (GridOp_05) the scan stopped. I (Kevin) stopped the
+matlab program with cntrl-c and restarted both the scan (run 10, still GridOp_5)
+and go.Run. The scan stopped again, this time with the error "Head coil 
+disconnected?". Called Terry and he suggested unplugging the headcoil and 
+plugging back in (Apparently the heavy use of the scanner this weekend caused 
+the head coil to come loose). Did this and restarted (run 11) and everything 
+worked fine. On run 18 (GridOp_12) the same error came up, solved the same way 
+and restarted. Runs 9, 10, and 18 were not exported.
+
+ms fMRI 1: had an allergic reaction (hives) during scanning and was very uncomfortable and moving quite a bit.
+lz behav1: participant has completed Raven's Progressive Matrices before.
+
+ml fMRI 2: had to use restroom after 4th EPI run (scan 8). Reran scout and ref (scans 9/10) and continued afterward
+cj1 behav1: Participant has completed Raven's Progressive Matrices before.
