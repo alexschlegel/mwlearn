@@ -18,13 +18,16 @@ function s = BehavioralResults(cSession,varargin)
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
+global strDirAnalysis;
+
 [ifo,opt]	= ParseArgs(varargin,[],...
 				'force'	, false	  ...
 			);
 
-strPathStore	= PathAddSuffix(mfilename('fullpath'),'-store','mat');
+strPathMe		= mfilename('fullpath');
+strPathStore	= PathAddSuffix(strDirAnalysis,sprintf('%s-store',PathGetFilePre(strPathMe)),'mat');
 if ~opt.force && FileExists(strPathStore)
-	sStore	= load(strPathStore);
+	sStore	= getfield(load(strPathStore),'sStore');
 else
 	sStore	= dealstruct('code','result',{});
 end
@@ -36,19 +39,33 @@ cResult	= cell(size(cSession));
 	cResult(bStore)	= sStore.result(kStore(bStore));
 
 %construct the new ones
-	if any(~bStore)
-		cResult(~bStore)	= cellfunprogress(@LoadResults,cSession(~bStore),...
+	bNew	= ~bStore;
+	if any(bNew)
+		cSessionNew	= cSession(bNew);
+		
+		[cResultNew,bError]	= cellfunprogress(@LoadResults,cSessionNew,...
 								'label'	, 'loading results'	, ...
-								'uni'	, false					  ...
+								'uni'	, false				  ...
 								);
+		bError				= cell2mat(bError);
+		cResult(bNew)		= cResultNew;
+		
+		%save the results
+			bSave			= ~bError;
+			sStore.code		= [sStore.code; reshape(cSessionNew(bSave),[],1)];
+			sStore.result	= [sStore.result; reshape(cResultNew(bSave),[],1)];
+			
+			save(strPathStore,'sStore');
 	end
 
 %restructure the results
-	s	= cResult;
+	s	= restruct(cell2mat(cResult));
 
 %------------------------------------------------------------------------------%
-function sResult = LoadResults(strSession)
+function [sResult,bError] = LoadResults(strSession)
 	global strDirData 
+	
+	bError	= false;
 	
 	strPathMAT	= PathUnsplit(strDirData,strSession,'mat');
 	if FileExists(strPathMAT)
@@ -68,12 +85,15 @@ function sResult = LoadResults(strSession)
 						};
 			nField	= size(cField,1);
 			
+			bRan	= cellfun(@isstruct,s.PTBIFO.go.result);
+			sRes	= s.PTBIFO.go.result(bRan);
+			
 			sBlock	= struct;
 			for kF=1:nField
 				strFieldIn	= cField{kF,2};
 				strFieldOut	= cField{kF,1};
 				
-				x	= cellfun(@(res) [res.(strFieldIn)], s.PTBIFO.go.result,'uni',false);
+				x	= cellfun(@(res) [res.(strFieldIn)], sRes,'uni',false);
 				x	= cat(1,x{:});
 				
 				if isfield(map,strFieldOut)
@@ -84,7 +104,7 @@ function sResult = LoadResults(strSession)
 			end
 		
 		%response time
-			x			= cellfun(@(res) {res.tresponse},s.PTBIFO.go.result,'uni',false);
+			x			= cellfun(@(res) {res.tresponse},sRes,'uni',false);
 			x			= cellfun(@(cx) cellfun(@(x) unless(x,{NaN}),cx,'uni',false),x,'uni',false);
 			tResponse	= cellfun(@(cx) cellfun(@(x) x{end},cx),x,'uni',false);
 			tResponse	= cat(1,tResponse{:});
@@ -201,6 +221,13 @@ function sResult = LoadResults(strSession)
 					'attr'	, sAttr		  ...
 					);
 	else
-		sAttr	= dealstruct('block','attr',[]);
+		bError	= true;
+		sResult	= struct(...
+					'block'	, dealstruct('shape','operation','correct','rt',[])	, ...
+					'attr'	, dealstruct('roi','dc',struct(...
+								'target'	, dealstruct('shape','operation',dealstruct('all','correct',[]))	, ...
+								'chunk'		, dealstruct('all','correct',[])									  ...
+								))	  ...
+					);
 	end
 %------------------------------------------------------------------------------%

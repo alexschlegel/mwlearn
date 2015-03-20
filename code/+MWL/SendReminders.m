@@ -40,8 +40,8 @@ tOffset	= ConvertUnit(opt.offset,'hour','ms');
 	ifo.tscan	= [tMRI; tBehavioral];
 	ifo.mri		= [true(size(tMRI)); false(size(tBehavioral))];
 	
-	ifo.name	= repto(s.name,size(t.tscan));
-	ifo.email	= repto(s.email,size(t.tscan));
+	ifo.name	= repto(s.name,size(ifo.tscan));
+	ifo.email	= repto(s.email,size(ifo.tscan));
 	
 	bConsider	= ~isnan(ifo.tscan);
 	ifo			= structtreefun(@(x) x(bConsider,:),ifo);
