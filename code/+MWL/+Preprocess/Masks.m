@@ -11,7 +11,7 @@ function b = Masks(varargin)
 %		force:		(false)
 %		nthread:	(12)
 % 
-% Updated: 2015-03-16
+% Updated: 2015-03-20
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
@@ -34,7 +34,7 @@ strDirMaskOut	= DirAppend(strDirData,'mask');
 	cPathMaskCI		= FindFilesByExtension(strDirMaskCI,'nii.gz');
 	
 	%remove the occ masks
-		bRemove					= cellfun(@(f) ~isempty(strfind(PathGetFilePre(f,'favor','nii.gz'),'occ')),cPathMaskMNI);
+		bRemove					= cellfun(@(f) ~isempty(strfind(PathGetFilePre(f,'favor','nii.gz'),'occ')),cPathMaskCI);
 		cPathMaskCI(bRemove)	= [];
 	
 	nMask			= numel(cPathMaskCI);
@@ -51,14 +51,14 @@ strDirMaskOut	= DirAppend(strDirData,'mask');
 	cPathXFMMNI2Func	= cellfun(@(d) PathUnsplit(d,'standard2example_func','mat'),cDirReg,'uni',false);
 	cPathFunc			= cellfun(@(d) PathUnsplit(d,'example_func','nii.gz'),cDirReg,'uni',false);
 	
-	cPathMaskMNIRep		= repmat(cPathMaskMNI,[1 nSubject]);
+	cPathMaskCIRep		= repmat(cPathMaskCI,[1 nSubject]);
 	cPathXFMMNI2FuncRep	= repmat(cPathXFMMNI2Func',[nMask 1]);
 	cPathFuncRep		= repmat(cPathFunc',[nMask 1]);
 	cDirMaskRep			= repmat(cDirMask',[nMask 1]);
 	
-	cPathMaskRep	= cellfun(@(dm,fm) PathUnsplit(dm,PathGetFileName(fm)),cDirMaskRep,cPathMaskMNIRep,'uni',false);
+	cPathMaskRep	= cellfun(@(dm,fm) PathUnsplit(dm,PathGetFileName(fm)),cDirMaskRep,cPathMaskCIRep,'uni',false);
 	
-	b	= FSLRegisterFLIRT(cPathMaskMNIRep,cPathFuncRep,...
+	b	= FSLRegisterFLIRT(cPathMaskCIRep,cPathFuncRep,...
 			'output'	, cPathMaskRep			, ...
 			'xfm'		, cPathXFMMNI2FuncRep	, ...
 			'interp'	, 'nearestneighbour'	, ...

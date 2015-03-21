@@ -1,38 +1,47 @@
-function s = BehavioralResults(cSession,varargin)
+function s = BehavioralResults(varargin)
 % GO.BehavioralResults
 % 
 % Description:	load the behavioral results for a set of subjects
 % 
-% Syntax:	s = GO.BehavioralResults(cSession,<options>)
+% Syntax:	s = GO.BehavioralResults(<options>)
 % 
 % In:
-%	cSession	- a cell of session codes
 %	<options>:
-%		force:	(false) true to force recalculation of previously-calculated
-%				result
+%		session:	(<all>) a cell of session codes
+%		force:		(false) true to force recalculation of previously-calculated
+%					result
 % 
 % Out:
 % 	s	- a struct of behavioral results
 % 
-% Updated: 2015-03-16
+% Updated: 2015-03-20
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
 global strDirAnalysis;
 
-[ifo,opt]	= ParseArgs(varargin,[],...
-				'force'	, false	  ...
+%parse the inputs
+	opt	= ParseArgs(varargin,...
+			'session'	, []	, ...
+			'force'	, false		  ...
 			);
+	
+	if isempty(opt.session)
+		ifo			= MWL.GetSubjectInfo;
+		cSession	= ifo.code.mri;
+	else
+		cSession	= opt.session;
+	end
+	cResult	= cell(size(cSession));
 
-strPathMe		= mfilename('fullpath');
-strPathStore	= PathAddSuffix(strDirAnalysis,sprintf('%s-store',PathGetFilePre(strPathMe)),'mat');
-if ~opt.force && FileExists(strPathStore)
-	sStore	= getfield(load(strPathStore),'sStore');
-else
-	sStore	= dealstruct('code','result',{});
-end
-
-cResult	= cell(size(cSession));
+%load existing results
+	strPathMe		= mfilename('fullpath');
+	strPathStore	= PathAddSuffix(strDirAnalysis,sprintf('%s-store',PathGetFilePre(strPathMe)),'mat');
+	if ~opt.force && FileExists(strPathStore)
+		sStore	= getfield(load(strPathStore),'sStore');
+	else
+		sStore	= dealstruct('code','result',{});
+	end
 
 %copy the previously-constructed results
 	[bStore,kStore]	= ismembercellstr(cSession,sStore.code);
@@ -44,8 +53,8 @@ cResult	= cell(size(cSession));
 		cSessionNew	= cSession(bNew);
 		
 		[cResultNew,bError]	= cellfunprogress(@LoadResults,cSessionNew,...
-								'label'	, 'loading results'	, ...
-								'uni'	, false				  ...
+								'label'	, 'loading gridop behavioral results'	, ...
+								'uni'	, false									  ...
 								);
 		bError				= cell2mat(bError);
 		cResult(bNew)		= cResultNew;
