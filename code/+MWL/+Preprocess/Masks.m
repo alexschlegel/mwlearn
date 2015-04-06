@@ -11,7 +11,7 @@ function b = Masks(varargin)
 %		force:		(false)
 %		nthread:	(12)
 % 
-% Updated: 2015-03-20
+% Updated: 2015-03-23
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
@@ -118,6 +118,7 @@ strDirMaskOut	= DirAppend(strDirData,'mask');
 		
 		b	= MultiTask(@FreeSurferMask,cInput,...
 					'description'	, 'extracting masks'	, ...
+					'catch'			, true					, ...
 					'nthread'		, opt.nthread			  ...
 					);
 
@@ -139,30 +140,3 @@ strDirMaskOut	= DirAppend(strDirData,'mask');
 			'force'		, opt.force					, ...
 			'nthread'	, opt.nthread				  ...
 			);
-
-%union mask
-	b	= MultiTask(@UnionMask,{cDirMask opt},...
-			'description'	, 'constructing union masks'	, ...
-			'nthread'		, opt.nthread					  ...
-			);
-	
-%------------------------------------------------------------------------------%
-function b = UnionMask(strDirMask,opt)
-	cMask	= {'dlpfc';'fef';'loc';'occ';'pcu';'ppc'};
-	cHemi	= {'-left';'-right';''};
-	nHemi	= numel(cHemi);
-	
-	b	= true;
-	for kH=1:nHemi
-		strHemi	= cHemi{kH};
-		
-		strDirMask	= DirAppend(
-		
-		for kS=1:nSubject
-			cPathMask		= cellfun(@(m) PathUnsplit(strDirMask,sprintf('%s%s',m,strHemi),'nii.gz'),cMask,'uni',false);
-			strPathUnion	= PathUnsplit(strDirMaskCur,sprintf('all%s',strHemi),'nii.gz');
-			
-			b	= b & MRIMaskMerge(cPathMask,strPathUnion,'force',opt.force,'silent',true);
-		end
-	end
-%------------------------------------------------------------------------------%
