@@ -16,14 +16,9 @@ dimPCA	= 10;
 	s	= GO.BehavioralResults('session',cSession);
 
 %the ROIs
-	cMask	=	{
-					'occ'
-					'loc'
-					'pcu'
-					'pcc'
-					'fef'
-					'dlpfc'
-				};
+	sMask	= MWL.Masks;
+	
+	cMask	= sMask.ci;
 
 %classify each scheme
 	conf	=	[
@@ -43,7 +38,7 @@ dimPCA	= 10;
 			strDirOutScheme	= DirAppend(strDirOut,strScheme);
 		
 		%targets and chunks
-			cTarget	= s.attr.roi.target.(strScheme).all;
+			cTarget	= s.attr.dc.target.(strScheme).all;
 			
 			durRun	= GO.Param('trrun');
 			nRun	= cellfun(@(c) numel(c)/durRun,kChunk,'uni',false);
