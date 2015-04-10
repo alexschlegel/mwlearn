@@ -42,7 +42,7 @@ dimPCA	= 10;
 			
 			durRun	= GO.Param('trrun');
 			nRun	= GO.Param('exp','runs');
-			kChunk	= cellfun(@(n) reshape(repmat(1:n,[durRun 1]),[],1),nRun,'uni',false);
+			kChunk	= reshape(repmat(1:nRun,[durRun 1]),[],1);
 		
 		%ROI directed connectivity classification!
 			res	= MVPAROIDCClassify(...
