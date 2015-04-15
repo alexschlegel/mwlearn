@@ -41,8 +41,8 @@ dimPCA	= 10;
 			cTarget	= s.attr.dc.target.(strScheme).all;
 			
 			durRun	= GO.Param('trrun');
-			nRun	= GO.Param('exp','runs');
-			kChunk	= reshape(repmat(1:nRun,[durRun 1]),[],1);
+			nRun	= cellfun(@(c) numel(c)/durRun,cTarget,'uni',false);
+			kChunk	= cellfun(@(n) reshape(repmat(1:n,[durRun 1]),[],1),nRun,'uni',false);
 		
 		%ROI directed connectivity classification!
 			res	= MVPAROIDCClassify(...
