@@ -8,6 +8,8 @@ function s = ComputerResults(varargin)
 % In: 
 %   <options>:
 %       session:	(<all>) a cell of session codes
+%		robust:		(false) true to use robust curve fitting for the three
+%					mental manipulation tasks
 %		force:		(false) true to force recalculation of previously-calculated
 %					results
 %
@@ -23,15 +25,16 @@ function s = ComputerResults(varargin)
 %   
 %   -Missing sessions are given a score of NaN 
 %
-% Updated: 2015-03-20
-% Copyright 2015 Kevin Hartstein.  This work is licensed under a Creative
-% Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+% Updated: 2015-04-16
+% Copyright 2015 Kevin Hartstein/Alex Schlegel.  This work is licensed under a
+% Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 global strDirAnalysis;
 
 %parse the inputs
 	opt	= ParseArgs(varargin,...
 			'session'	, []	, ...
-			'force'	, false		  ...
+			'robust'	, false	, ...
+			'force'		, false	  ...
 			);
 	
 	if isempty(opt.session)
@@ -45,6 +48,11 @@ global strDirAnalysis;
 %load existing results
 	strPathMe		= mfilename('fullpath');
 	strPathStore	= PathAddSuffix(strDirAnalysis,sprintf('%s-store',PathGetFilePre(strPathMe)),'mat');
+	
+	if opt.robust
+		strPathStore	= PathAddSuffix(strPathStore,'-robust');
+	end
+	
 	if ~opt.force && FileExists(strPathStore)
 		sStore	= getfield(load(strPathStore),'sStore');
 	else
@@ -109,16 +117,24 @@ function [sResult,bError] = LoadResult(strSession)
 	end
 end
 %------------------------------------------------------------------------------%
-function [constructScore] = GetConstructScore(res)  
-	constructScore	= 1 - res.PTBIFO.mwlt.ci.psychoCurve.t;
+function constructScore = GetConstructScore(res)
+	constructScore	= GetPsychoCurveScore(res,'ci');
 end
 %------------------------------------------------------------------------------%
-function [rotateScore] = GetRotateScore(res)
-	rotateScore	= 1 - res.PTBIFO.mwlt.angle.psychoCurve.t;
+function rotateScore = GetRotateScore(res)
+	rotateScore	= GetPsychoCurveScore(res,'angle');
 end
 %------------------------------------------------------------------------------%
-function [assemblageScore] = GetAssemblageScore(res)
-	assemblageScore	= 1 - res.PTBIFO.mwlt.assemblage.psychoCurve.t;
+function assemblageScore = GetAssemblageScore(res)
+	assemblageScore	= GetPsychoCurveScore(res,'assemblage');
+end
+%------------------------------------------------------------------------------%
+function score = GetPsychoCurveScore(res,strTask)
+	p	= res.PTBIFO.mwlt.(strTask).psychoCurve;
+	
+	p.Fit('robust',opt.robust);
+	
+	score	= 1 - p.t;
 end
 %------------------------------------------------------------------------------%
 function [wm_verbalScore] = GetWMVerbalScore(res)

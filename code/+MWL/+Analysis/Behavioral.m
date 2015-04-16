@@ -1,22 +1,22 @@
-function s = Analysis(varargin)
-% MWL.Behavioral.Analysis
+function [s,h] = Behavioral(varargin)
+% MWL.Analysis.Behavioral
 %
 % Description:	analyze the behavioral results 
 %
-% Syntax:	s = MWL.Behavioral.Analysis(<options>)
+% Syntax:	[s,h] = MWL.Analysis.Behavioral(<options>)
 %
 % In:
 %	<options>:
 %		ifo:	(<load>) the subject info struct
+%		robust:	([]) see MWL.Behavioral.ComputerResults
 %		result:	(<load>) the behavioral results
+%		plot:	(false) true to plot results
 %
-% Example:
-%	sAnalysis = MWL.Behavioral.Analysis;
-%	cLabel = cellfun(@(str) strrep(str,'_',''),sAnalysis.corr.test,'uni',false);
-%	[M,k] = spectralreorder(sAnalysis.corr.stat.r);
-%	h = alexplot(M,'label',cLabel(k),'type','confusion');
+% Out:
+%	s	- a struct of results
+%	h	- a struct of plot handles
 % 
-% Updated: 2015-03-20
+% Updated: 2015-04-16
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
@@ -24,7 +24,9 @@ function s = Analysis(varargin)
 %parse the inputs
 	opt	= ParseArgs(varargin,...
 			'ifo'		, []	, ...
-			'result'	, []	  ...
+			'robust'	, []	, ...
+			'result'	, []	, ...
+			'plot'		, false	  ...
 			);
 	
 	if isempty(opt.ifo)
@@ -34,7 +36,7 @@ function s = Analysis(varargin)
 	end
 	
 	if isempty(opt.result)
-		sResult	= MWL.Behavioral.Results('ifo',ifo);
+		sResult	= MWL.Behavioral.Results('ifo',ifo,'robust',opt.robust);
 	else
 		sResult= opt.result;
 	end
@@ -62,7 +64,7 @@ nTest	= numel(cTest);
 				bTTest		= ~any(isnan(data(:,1:2)),2);
 				cData{kG}	= data(bTTest,1:2);
 				
-				[h,p,ci,stats]	= ttest(data(bTTest,2),data(bTTest,1));
+				[nh,p,ci,stats]	= ttest(data(bTTest,2),data(bTTest,1));
 				
 				s.test.(strGroup).(strTest)	= struct(...
 												'm'		, nanmean(data,1)	, ...
@@ -99,4 +101,32 @@ nTest	= numel(cTest);
 	
 	s.corr.stat	= restruct(cell2mat(stat));
 	s.corr.stat	= structsub(s.corr.stat,{'r','z','df','t','p'});
-	s.corr.stat	= structfun2(@squareform,s.corr.stat);
+	
+	[pt,s.corr.stat.pfdr]	= fdr(s.corr.stat.p,0.05);
+	
+	s.corr.stat	= structfun2(@(x) squareform(x) + conditional(logical(eye(size(squareform(x)))),NaN,0),s.corr.stat);
+	
+	if opt.plot
+		r		= s.corr.stat.r;
+		z		= s.corr.stat.z;
+		p		= s.corr.stat.p;
+		pfdr	= s.corr.stat.pfdr;
+		cLabel	= cellfun(@(str) strrep(str,'_',''),s.corr.test,'uni',false);
+		
+		[r,kSort]	= SortConfusion(r);
+		cLabel		= cLabel(kSort);
+		z			= ReorderConfusion(z,kSort);
+		p			= ReorderConfusion(p,kSort);
+		pfdr		= ReorderConfusion(pfdr,kSort);
+		
+		r(pfdr>0.05)	= NaN;
+		
+		h.corr	= alexplot(r,...
+					'nancol'		, [1 1 1]		, ...
+					'cmmin'			, 0				, ...
+					'label'			, cLabel		, ...
+					'tplabel'		, false			, ...
+					'scalelabel'	, 'r'			, ...
+					'type'			, 'confusion'	  ...
+					);
+	end
