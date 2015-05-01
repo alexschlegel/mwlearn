@@ -14,7 +14,7 @@ function [s,h] = MVPA(varargin)
 %	s	- a struct of results
 %	h	- a struct of plot handles
 % 
-% Updated: 2015-04-30
+% Updated: 2015-05-01
 % Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
@@ -50,7 +50,7 @@ s	= struct;
 	nMVPAMeasure	= numel(cMVPAMeasure);
 	
 	cBehavMeasure	= fieldnames(behav);
-	nBehavMeasure	= numel(cMeasure);
+	nBehavMeasure	= numel(cBehavMeasure);
 
 %groups
 	bGroup	= arrayfun(@(g) ifo.group==g,(1:2)','uni',false);
