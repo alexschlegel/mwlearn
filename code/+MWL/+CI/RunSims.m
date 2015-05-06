@@ -17,7 +17,7 @@ errThresh = 0.05;
 maxTrials = 1000;
 % simulate!
 [res.trials2thresh, res.tError, res.bError] = MultiTask(@DoSimulation, {num2cell(dLevelRep), num2cell(bRep)},...
-    'description', 'simulating trials','nthread', nCore);
+    'description', 'simulating trials','cores', nCore);
 res.noise = noise;
 res.errThresh = errThresh;
 res.maxTrials = maxTrials;

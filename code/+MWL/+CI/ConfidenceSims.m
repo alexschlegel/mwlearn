@@ -18,7 +18,7 @@ numTrials = 100;
 % % simulate!
 % [~,~,p,~] = MultiTask(@(d) MWL.CI.Simulate(d, b, 'noise', noise,...
 %     'numTrials', numTrials, 'plot', false), {num2cell(dLevelRep)},...
-%     'description', 'simulating trials','nthread', nCore);
+%     'description', 'simulating trials','cores', nCore);
 % 
 % save(PathUnsplit(strDirCode, 'confSimTemp','mat'));
 % res = [];
@@ -32,7 +32,7 @@ tHist = cellfun(@(p) p.hist.t, p, 'uni',false);
 [dLevelGrid, numTrialGrid] = meshgrid(dLevel, 1:numTrials);
 for d = 1:numel(dLevel)
     res.ci95(:,d) = MultiTask(@CalculateCI, {{tHist(:,d)}, dLevel(d), num2cell((1:numTrials)'), runs},...
-        'description', 'calculating confidence intervals', 'nthread', nCore,'debug','all','debug_communicator','all');
+        'description', 'calculating confidence intervals', 'cores', nCore,'debug','all','debug_communicator','all');
 end
 
 
