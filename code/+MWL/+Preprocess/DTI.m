@@ -150,6 +150,25 @@ ifo	= MWL.GetSubjectInfo;
 		b	= FSLMerge(cPathFAZ2MNIMasked,strPathFAZAll,'force',opt.force);
 		b	= FSLMerge(cPathRDZ2MNIMasked,strPathRDZAll,'force',opt.force);
 	
+	%also merge into single session data
+		[dummy,kSession]	= find(bProcess);
+		kSessionU			= unique(kSession);
+		nSession			= numel(kSessionU);
+		
+		for kS=1:nSession
+			kSCur		= kSessionU(kS);
+			bSession	= kSession==kSCur;
+			
+			cPathFAZSession	= cPathFAZ2MNIMasked(bSession);
+			cPathRDZSession	= cPathRDZ2MNIMasked(bSession);
+			
+			strPathFAZSession	= PathAddSuffix(strPathFAZAll,sprintf('_%d',kSCur),'favor','nii.gz');
+			strPathRDZSession	= PathAddSuffix(strPathRDZAll,sprintf('_%d',kSCur),'favor','nii.gz');
+			
+			b	= FSLMerge(cPathFAZSession,strPathFAZSession,'force',opt.force);
+			b	= FSLMerge(cPathRDZSession,strPathRDZSession,'force',opt.force);
+		end
+	
 	%construct WM mask file for randomise
 		strPathWM	= PathUnsplit(strDirDTI,'wm','nii.gz');
 		
