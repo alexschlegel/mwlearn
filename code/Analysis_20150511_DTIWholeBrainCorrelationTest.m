@@ -1,7 +1,7 @@
 % Analysis_20150511_DTIWholeBrainCorrelationTest
 % make sure Analysis_20150505_DTIWholeBrainCorrelation is set up correctly by
 % injecting some signal
-nCore	= 1;
+nCore	= 12;
 
 %create directory for analysis results
 	strNameAnalysis	= '20150511_dtiwholebraincorrelationtest';
@@ -30,7 +30,7 @@ r	= res.ravens(:,1);
 	rm	= repmat(reshape(r,1,1,1,[]),[w h 1 1]);
 	rn	= rm.*(1 + 0.5*rand(size(rm)));
 	
-	nii.data(x+(0:w-1),y+(0:h-1),z,:)	= nii.data(x+(0:w-1),y+(0:h-1),z,:) + rn;
+	nii.data(x+(0:w-1),y+(0:h-1),z,:)	= rn;
 	
 	NIfTI.Write(nii,strPathFake);
 
@@ -42,10 +42,13 @@ r	= res.ravens(:,1);
 %call randomise
 	strPathOut	= PathUnsplit(strDirOut,'faz_1_ravens');
 	
-	[b,cPathOut]	= FSLRandomise(strPathFake,d,...
+	strPathMask	= FSLPathMNIAnatomical('type','MNI152_T1_2mm_brain_mask');
+	
+	[b,strPathOut]	= FSLRandomise(strPathFake,d,...
 						'output'			, strPathOut	, ...
-						'mask'				, strPathWM		, ...
+						'mask'				, strPathMask	, ...
 						'tcontrast'			, tContrast		, ...
+						'permutations'		, 500			, ...
 						'cores'				, nCore			, ...
-						'force'				, false			  ...
+						'force'				, true			  ...
 						);

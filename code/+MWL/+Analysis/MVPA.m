@@ -86,7 +86,7 @@ s	= struct;
 					
 					[p,table]	= anova_rm({dExp dCon},'off');
 					
-					ss.df(kK,:)	= [table{4,3} table{4,5}];
+					ss.df(kK,:)	= [table{4,3} table{5,3}];
 					ss.F(kK)	= table{4,5};
 					ss.p(kK)	= table{4,6};
 				end
