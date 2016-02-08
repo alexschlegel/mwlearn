@@ -11,11 +11,11 @@ function p = part(a,varargin)
 % Out:
 % 	p	- the AssemblagePart
 % 
-% Updated: 2014-11-10
-% Copyright 2014 Alex Schlegel (schlegel@gmail.com).  This work is licensed
+% Updated: 2015-06-12
+% Copyright 2015 Alex Schlegel (schlegel@gmail.com).  This work is licensed
 % under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 % License.
-part	= ParseArgsOpt(varargin,NaN);
+part	= ParseArgs(varargin,NaN);
 
 if isa(part,'MWL.Assemblage.AssemblagePart')
 	p	= part;
